@@ -1,8 +1,8 @@
-import { openai } from "@ai-sdk/openai";
-import { experimental_wrapLanguageModel as wrapLanguageModel } from "ai";
+import { google } from "@ai-sdk/google";
+import { wrapLanguageModel } from "ai";
 import { ragMiddleware } from "./rag-middleware";
 
 export const customModel = wrapLanguageModel({
-  model: openai("gpt-4o"),
+  model: google("gemini-2.5-flash-preview-04-17"),
   middleware: ragMiddleware,
 });

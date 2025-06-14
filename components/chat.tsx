@@ -1,7 +1,7 @@
 "use client";
 
 import { Message } from "ai";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
 import { useEffect, useState } from "react";
 import { Files } from "@/components/files";
 import { AnimatePresence, motion } from "framer-motion";
@@ -42,7 +42,7 @@ export function Chat({
     if (isMounted !== false && session && session.user) {
       localStorage.setItem(
         `${session.user.email}/selected-file-pathnames`,
-        JSON.stringify(selectedFilePathnames),
+        JSON.stringify(selectedFilePathnames)
       );
     }
   }, [selectedFilePathnames, isMounted, session]);
@@ -56,9 +56,9 @@ export function Chat({
       setSelectedFilePathnames(
         JSON.parse(
           localStorage.getItem(
-            `${session.user.email}/selected-file-pathnames`,
-          ) || "[]",
-        ),
+            `${session.user.email}/selected-file-pathnames`
+          ) || "[]"
+        )
       );
     }
   }, [session]);

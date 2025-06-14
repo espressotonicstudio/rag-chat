@@ -9,7 +9,7 @@ export interface LoginActionState {
 
 export const login = async (
   data: LoginActionState,
-  formData: FormData,
+  formData: FormData
 ): Promise<LoginActionState> => {
   try {
     await signIn("credentials", {
@@ -30,7 +30,7 @@ export interface RegisterActionState {
 
 export const register = async (
   data: RegisterActionState,
-  formData: FormData,
+  formData: FormData
 ) => {
   let email = formData.get("email") as string;
   let password = formData.get("password") as string;

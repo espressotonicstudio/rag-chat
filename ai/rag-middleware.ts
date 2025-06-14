@@ -1,6 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { getChunksByFilePaths } from "@/app/db";
-import { openai } from "@ai-sdk/openai";
+import { google } from "@ai-sdk/google";
 import {
   cosineSimilarity,
   embed,
@@ -50,7 +50,10 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Classify the user prompt as whether it requires more context or not
     const { object: classification } = await generateObject({
       // fast model for classification:
-      model: openai("gpt-4o-mini", { structuredOutputs: true }),
+      // model: openai("gpt-4o-mini", { structuredOutputs: true }),
+      model: google("gemini-2.5-flash-preview-04-17", {
+        structuredOutputs: true,
+      }),
       output: "enum",
       enum: ["question", "statement", "other"],
       system: "classify the user message as a question, statement, or other",
@@ -66,14 +69,18 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Use hypothetical document embeddings:
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
-      model: openai("gpt-4o-mini", { structuredOutputs: true }),
+      // model: openai("gpt-4o-mini", { structuredOutputs: true }),
+      model: google("gemini-2.5-flash-preview-04-17", {
+        structuredOutputs: true,
+      }),
       system: "Answer the users question:",
       prompt: lastUserMessageContent,
     });
 
     // Embed the hypothetical answer
     const { embedding: hypotheticalAnswerEmbedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
+      // model: openai.embedding("text-embedding-3-small"),
+      model: google.textEmbeddingModel("text-embedding-004"),
       value: hypotheticalAnswer,
     });
 
@@ -86,7 +93,7 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
       ...chunk,
       similarity: cosineSimilarity(
         hypotheticalAnswerEmbedding,
-        chunk.embedding,
+        chunk.embedding
       ),
     }));
 
