@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { Chat as PreviewChat } from "@/components/chat";
 import { auth } from "@/app/(auth)/auth";
 
-export default async function Page({ params }: { params: any }) {
+export default async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const { id } = params;
   const chatFromDb = await getChatById({ id });
 

@@ -4,7 +4,7 @@ import { google } from "@ai-sdk/google";
 import {
   cosineSimilarity,
   embed,
-  Experimental_LanguageModelV1Middleware,
+  LanguageModelV1Middleware,
   generateObject,
   generateText,
 } from "ai";
@@ -17,7 +17,7 @@ const selectionSchema = z.object({
   }),
 });
 
-export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
+export const ragMiddleware: LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
     const session = await auth();
 
@@ -50,7 +50,6 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Classify the user prompt as whether it requires more context or not
     const { object: classification } = await generateObject({
       // fast model for classification:
-      // model: openai("gpt-4o-mini", { structuredOutputs: true }),
       model: google("gemini-2.5-flash-preview-04-17", {
         structuredOutputs: true,
       }),
@@ -69,7 +68,6 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
     // Use hypothetical document embeddings:
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
-      // model: openai("gpt-4o-mini", { structuredOutputs: true }),
       model: google("gemini-2.5-flash-preview-04-17", {
         structuredOutputs: true,
       }),
@@ -79,7 +77,6 @@ export const ragMiddleware: Experimental_LanguageModelV1Middleware = {
 
     // Embed the hypothetical answer
     const { embedding: hypotheticalAnswerEmbedding } = await embed({
-      // model: openai.embedding("text-embedding-3-small"),
       model: google.textEmbeddingModel("text-embedding-004"),
       value: hypotheticalAnswer,
     });
