@@ -13,7 +13,7 @@ export async function DELETE(request: Request) {
 
   const { user } = session;
 
-  if (!user || !user.email) {
+  if (!user || !user.id) {
     return Response.redirect("/login");
   }
 
@@ -29,7 +29,7 @@ export async function DELETE(request: Request) {
 
   const { pathname } = await head(fileurl);
 
-  if (!pathname.startsWith(user.email)) {
+  if (!pathname.startsWith(user.id)) {
     return new Response("Unauthorized", { status: 400 });
   }
 

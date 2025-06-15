@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return new Response("Request body is empty", { status: 400 });
   }
 
-  const { downloadUrl } = await put(`${user.email}/${filename}`, request.body, {
+  const { downloadUrl } = await put(`${user.id}/${filename}`, request.body, {
     access: "public",
   });
 
@@ -43,8 +43,8 @@ export async function POST(request: Request) {
 
   await insertChunks({
     chunks: chunkedContent.map((chunk, i) => ({
-      id: `${user.email}/${filename}/${i}`,
-      filePath: `${user.email}/${filename}`,
+      id: `${user.id}/${filename}/${i}`,
+      filePath: `${user.id}/${filename}`,
       content: chunk.pageContent,
       embedding: embeddings[i],
     })),

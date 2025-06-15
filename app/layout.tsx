@@ -1,11 +1,10 @@
-import { Navbar } from "@/components/navbar";
 import { Metadata } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    "https://ai-sdk-preview-internal-knowledge-base.vercel.app",
+    "https://ai-sdk-preview-internal-knowledge-base.vercel.app"
   ),
   title: "Internal Knowledge Base",
   description:
@@ -19,9 +18,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="flex flex-col h-dvh">
         <Toaster position="top-center" />
-        <Navbar />
         {children}
       </body>
     </html>
