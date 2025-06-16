@@ -13,8 +13,12 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model: customModel,
-    system:
-      "you are a friendly assistant! keep your responses concise and helpful.",
+    system: `
+    you are a helpful assistant that can answer questions about the business website based on the documents provided.
+    Assume that knowledge from the document is part of your knowledge base.
+    Do not make up information that is not in the documents.
+    Do not reply with "Based on the documents provided..."
+    `,
     messages,
     experimental_providerMetadata: {
       apiKey,

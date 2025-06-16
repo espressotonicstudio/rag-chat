@@ -24,11 +24,9 @@ export default async function Admin() {
         session={session}
         config={config}
       />
-      <Chat
-        id={generateId()}
-        initialMessages={[]}
-        apiKey={session?.user?.apiKey}
-        author={session?.user?.email}
+      <iframe
+        src={`/?isIframe=true&apiKey=${session?.user?.apiKey}&author=${session?.user?.email}`}
+        className="w-full h-full"
       />
     </div>
   );
