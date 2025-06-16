@@ -1,4 +1,5 @@
 import { Message } from "ai";
+import { randomUUID } from "crypto";
 import { InferSelectModel } from "drizzle-orm";
 import {
   pgTable,
@@ -7,9 +8,11 @@ import {
   real,
   timestamp,
   json,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("User", {
+  apiKey: uuid("apiKey").defaultRandom(),
   email: varchar("email", { length: 64 }).primaryKey().notNull(),
   password: varchar("password", { length: 64 }),
 });

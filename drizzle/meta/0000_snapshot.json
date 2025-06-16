@@ -1,5 +1,5 @@
 {
-  "id": "3f8197c3-143f-4add-b4d7-2c893c46de0f",
+  "id": "d78e56ec-fcd5-4aab-a6ab-6fb1c19b23ba",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -90,6 +90,13 @@
       "name": "User",
       "schema": "",
       "columns": {
+        "apiKey": {
+          "name": "apiKey",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "gen_random_uuid()"
+        },
         "email": {
           "name": "email",
           "type": "varchar(64)",

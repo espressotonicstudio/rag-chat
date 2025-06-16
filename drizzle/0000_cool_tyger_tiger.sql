@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS "Chunk" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "User" (
+	"apiKey" uuid DEFAULT gen_random_uuid(),
 	"email" varchar(64) PRIMARY KEY NOT NULL,
 	"password" varchar(64)
 );
