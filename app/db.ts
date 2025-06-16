@@ -42,10 +42,12 @@ export async function createMessage({
   id,
   messages,
   author,
+  apiKey,
 }: {
   id: string;
   messages: any;
   author: string;
+  apiKey: string;
 }) {
   const selectedChats = await db.select().from(chat).where(eq(chat.id, id));
 
@@ -63,6 +65,7 @@ export async function createMessage({
     createdAt: new Date(),
     messages: JSON.stringify(messages),
     author,
+    apiKey,
   });
 }
 
@@ -71,6 +74,14 @@ export async function getChatsByAuthor({ author }: { author: string }) {
     .select()
     .from(chat)
     .where(eq(chat.author, author))
+    .orderBy(desc(chat.createdAt));
+}
+
+export async function getChatsByApiKey({ apiKey }: { apiKey: string }) {
+  return await db
+    .select()
+    .from(chat)
+    .where(eq(chat.apiKey, apiKey))
     .orderBy(desc(chat.createdAt));
 }
 

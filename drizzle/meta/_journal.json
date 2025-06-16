@@ -29,6 +29,27 @@
       "when": 1750100000000,
       "tag": "0003_fix_null_filepaths",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1750097530587,
+      "tag": "0004_wooden_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1750097598588,
+      "tag": "0005_tired_kylun",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1750097757304,
+      "tag": "0006_unusual_marauders",
+      "breakpoints": true
     }
   ]
 }

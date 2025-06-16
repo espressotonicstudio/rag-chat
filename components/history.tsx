@@ -10,7 +10,7 @@ import { useParams, usePathname } from "next/navigation";
 import { Chat } from "@/schema";
 import { fetcher } from "@/utils/functions";
 
-export const History = ({ author }: { author: string | null | undefined }) => {
+export const History = ({ apiKey }: { apiKey: string | null | undefined }) => {
   const { id } = useParams();
   const pathname = usePathname();
 
@@ -20,7 +20,7 @@ export const History = ({ author }: { author: string | null | undefined }) => {
     error,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(`/api/history?author=${author}`, fetcher, {
+  } = useSWR<Array<Chat>>(`/api/history?apiKey=${apiKey}`, fetcher, {
     fallbackData: [],
   });
 

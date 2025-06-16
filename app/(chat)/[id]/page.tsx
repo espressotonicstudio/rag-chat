@@ -5,9 +5,17 @@ import { notFound } from "next/navigation";
 import { Chat as PreviewChat } from "@/components/chat";
 import { auth } from "@/app/(auth)/auth";
 
-export default async function Page(props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
-  const { id } = params;
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{
+    apiKey: string | null | undefined;
+    author: string | null | undefined;
+  }>;
+}) {
+  const { id } = await params;
 
   const chatFromDb = await getChatById({ id });
 
@@ -23,8 +31,11 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const session = await auth();
 
-  if (chat.author !== session?.user?.email) {
-    notFound();
+  let { apiKey, author } = await searchParams;
+
+  if (session) {
+    apiKey = session.user.apiKey;
+    author = session.user.email;
   }
 
   return (
@@ -32,8 +43,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <PreviewChat
         id={chat.id}
         initialMessages={chat.messages}
-        apiKey={session?.user?.apiKey}
-        author={session?.user?.email}
+        apiKey={apiKey}
+        author={author}
       />
     </>
   );

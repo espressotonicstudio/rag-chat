@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ALTER COLUMN "apiKey" SET DATA TYPE uuid;

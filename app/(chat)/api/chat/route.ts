@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         id,
         messages: [...messages, { role: "assistant", content: text }],
         author,
+        apiKey,
       });
     },
     experimental_telemetry: {

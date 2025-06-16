@@ -1,13 +1,13 @@
-import { getChatsByAuthor } from "@/app/db";
+import { getChatsByApiKey } from "@/app/db";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const author = searchParams.get("author");
+  const apiKey = searchParams.get("apiKey");
 
-  if (!author) {
+  if (!apiKey) {
     return Response.json("No author provided", { status: 400 });
   }
 
-  const chats = await getChatsByAuthor({ author });
+  const chats = await getChatsByApiKey({ apiKey });
   return Response.json(chats);
 }
