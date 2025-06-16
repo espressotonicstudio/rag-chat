@@ -3,7 +3,7 @@ import { NextAuthConfig } from "next-auth";
 export const authConfig = {
   pages: {
     signIn: "/login",
-    newUser: "/",
+    newUser: "/admin",
   },
   providers: [
     // added later in auth.ts since it requires bcrypt which is only compatible with Node.js
@@ -35,11 +35,6 @@ export const authConfig = {
       if (isOnRegister || isOnLogin || isOnPreview || isOnChat) {
         return true; // Always allow access to register, login, chat, and preview pages
       }
-
-      // if (isOnChat) {
-      //   if (isLoggedIn) return true;
-      //   return false; // Redirect unauthenticated users to login page
-      // }
 
       if (isLoggedIn) {
         return Response.redirect(new URL("/", nextUrl));
