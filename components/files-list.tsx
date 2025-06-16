@@ -129,14 +129,12 @@ export const FilesList = ({
                     );
 
                     if (allSelected) {
-                      files.forEach((file) => {
-                        fetch(`/api/files/update`, {
-                          method: "PATCH",
-                          body: JSON.stringify({
-                            operation: "remove",
-                            filePath: file.pathname,
-                          }),
-                        });
+                      fetch(`/api/files/update`, {
+                        method: "PATCH",
+                        body: JSON.stringify({
+                          operation: "remove",
+                          filePaths: selectedFilePathnames,
+                        }),
                       });
 
                       setSelectedFilePathnames([]);
@@ -151,14 +149,12 @@ export const FilesList = ({
                       files.map((file) => file.pathname)
                     );
 
-                    onlyDiffs.forEach((pathname) => {
-                      fetch(`/api/files/update`, {
-                        method: "PATCH",
-                        body: JSON.stringify({
-                          operation: "add",
-                          filePath: pathname,
-                        }),
-                      });
+                    fetch(`/api/files/update`, {
+                      method: "PATCH",
+                      body: JSON.stringify({
+                        operation: "add",
+                        filePaths: onlyDiffs.map((file) => file.pathname),
+                      }),
                     });
                   }}
                 >
@@ -218,7 +214,7 @@ export const FilesList = ({
                     method: "PATCH",
                     body: JSON.stringify({
                       operation,
-                      filePath: file.pathname,
+                      filePaths: [file.pathname],
                     }),
                   });
                 }}

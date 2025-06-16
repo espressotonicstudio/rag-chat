@@ -2,9 +2,9 @@ import { auth } from "@/app/(auth)/auth";
 import { getConfigByApiKey, updateUserFilePaths } from "@/app/db";
 
 export async function PATCH(request: Request) {
-  const { operation, filePath } = await request.json();
+  const { operation, filePaths } = await request.json();
 
-  if (!operation || !filePath) {
+  if (!operation || !filePaths) {
     return Response.json("Missing operation or filePath", { status: 400 });
   }
 
@@ -30,9 +30,9 @@ export async function PATCH(request: Request) {
   // Handle remove operation
   if (operation === "remove") {
     updatedFilePaths =
-      config.filePaths?.filter((path) => path !== filePath) || [];
+      config.filePaths?.filter((path) => !filePaths.includes(path)) || [];
   } else if (operation === "add") {
-    updatedFilePaths = [...(config.filePaths || []), filePath];
+    updatedFilePaths = [...(config.filePaths || []), ...filePaths];
   }
 
   await updateUserFilePaths(user.apiKey, updatedFilePaths);
