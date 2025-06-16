@@ -8,6 +8,27 @@
       "when": 1750031340929,
       "tag": "0000_cool_tyger_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750044061438,
+      "tag": "0001_strange_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750045605516,
+      "tag": "0002_violet_landau",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1750100000000,
+      "tag": "0003_fix_null_filepaths",
+      "breakpoints": true
     }
   ]
 }

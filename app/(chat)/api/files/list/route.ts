@@ -14,12 +14,12 @@ export async function GET() {
     return Response.redirect("/login");
   }
 
-  const { blobs } = await list({ prefix: user.id! });
+  const { blobs } = await list({ prefix: user.apiKey! });
 
   return Response.json(
     blobs.map((blob) => ({
       ...blob,
-      pathname: blob.pathname.replace(`${user.id}/`, ""),
+      pathname: blob.pathname.replace(`${user.apiKey}/`, ""),
     }))
   );
 }

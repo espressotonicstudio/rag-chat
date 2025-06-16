@@ -10,7 +10,7 @@ import { useParams, usePathname } from "next/navigation";
 import { Chat } from "@/schema";
 import { fetcher } from "@/utils/functions";
 
-export const History = () => {
+export const History = ({ author }: { author: string | null | undefined }) => {
   const { id } = useParams();
   const pathname = usePathname();
 
@@ -20,7 +20,7 @@ export const History = () => {
     error,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>("/api/history", fetcher, {
+  } = useSWR<Array<Chat>>(`/api/history?author=${author}`, fetcher, {
     fallbackData: [],
   });
 
@@ -117,7 +117,7 @@ export const History = () => {
                         "p-2 dark:text-zinc-400 border-b dark:border-zinc-700 text-sm dark:hover:bg-zinc-700 hover:bg-zinc-200 last-of-type:border-b-0",
                         {
                           "dark:bg-zinc-700 bg-zinc-200": id === chat.id,
-                        },
+                        }
                       )}
                     >
                       {chat.messages[0].content as string}

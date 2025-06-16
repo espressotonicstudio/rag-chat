@@ -1,5 +1,9 @@
 import { auth } from "@/app/(auth)/auth";
-import { deleteChunksByFilePath } from "@/app/db";
+import {
+  deleteChunksByFilePath,
+  getConfigByApiKey,
+  updateUserFilePaths,
+} from "@/app/db";
 import { head, del } from "@vercel/blob";
 
 export async function DELETE(request: Request) {
@@ -13,7 +17,7 @@ export async function DELETE(request: Request) {
 
   const { user } = session;
 
-  if (!user || !user.id) {
+  if (!user || !user.apiKey) {
     return Response.redirect("/login");
   }
 
@@ -29,12 +33,24 @@ export async function DELETE(request: Request) {
 
   const { pathname } = await head(fileurl);
 
-  if (!pathname.startsWith(user.id)) {
+  if (!pathname.startsWith(user.apiKey)) {
     return new Response("Unauthorized", { status: 400 });
   }
 
-  await del(fileurl);
-  await deleteChunksByFilePath({ filePath: pathname });
+  const config = await getConfigByApiKey(user.apiKey);
+
+  if (!config) {
+    return new Response("Unauthorized", { status: 400 });
+  }
+
+  await Promise.all([
+    del(fileurl),
+    deleteChunksByFilePath({ filePath: pathname }),
+    updateUserFilePaths(
+      user.apiKey,
+      config.filePaths?.filter((path) => path !== pathname) || []
+    ),
+  ]);
 
   return Response.json({});
 }

@@ -8,7 +8,6 @@ export const ChatLauncher = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const isOpen = searchParams.get("chat") === "true";
-  const isIframe = searchParams.get("iframe") === "true";
 
   return (
     <>
@@ -22,28 +21,26 @@ export const ChatLauncher = () => {
               className="border border-black/20 dark:border-white/20 rounded-lg overflow-hidden"
             >
               <iframe
-                src="/?iframe=true"
+                src="/?isIframe=true"
                 className="w-[400px] h-[600px]"
               />
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-      {!isIframe && (
-        <button
-          className="fixed bottom-4 right-4 p-3 rounded-full bg-zinc-900 text-zinc-50 hover:bg-zinc-800 transition-all focus:outline-none dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-lg"
-          aria-label="Open chat"
-          onClick={() => {
-            if (isOpen) {
-              router.push(`/preview?chat=false`);
-            } else {
-              router.push(`/preview?chat=true`);
-            }
-          }}
-        >
-          <BotIcon />
-        </button>
-      )}
+      <button
+        className="fixed bottom-4 right-4 p-3 rounded-full bg-zinc-900 text-zinc-50 hover:bg-zinc-800 transition-all focus:outline-none dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-lg"
+        aria-label="Open chat"
+        onClick={() => {
+          if (isOpen) {
+            router.push(`/preview?chat=false`);
+          } else {
+            router.push(`/preview?chat=true`);
+          }
+        }}
+      >
+        <BotIcon />
+      </button>
     </>
   );
 };

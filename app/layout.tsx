@@ -22,7 +22,7 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
     >
-      <body className="flex flex-col h-dvh">
+      <body className="flex flex-col h-dvh bg-white dark:bg-zinc-900">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

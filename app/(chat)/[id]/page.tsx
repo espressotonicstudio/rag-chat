@@ -8,6 +8,7 @@ import { auth } from "@/app/(auth)/auth";
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
+
   const chatFromDb = await getChatById({ id });
 
   if (!chatFromDb) {
@@ -27,10 +28,13 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <PreviewChat
-      id={chat.id}
-      initialMessages={chat.messages}
-      session={session}
-    />
+    <>
+      <PreviewChat
+        id={chat.id}
+        initialMessages={chat.messages}
+        apiKey={session?.user?.apiKey}
+        author={session?.user?.email}
+      />
+    </>
   );
 }

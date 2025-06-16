@@ -12,9 +12,9 @@ export const authConfig = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log(user);
         token.apiKey = user.apiKey;
       }
+
       return token;
     },
     async session({ session, token }) {
@@ -32,14 +32,14 @@ export const authConfig = {
         return Response.redirect(new URL("/", nextUrl));
       }
 
-      if (isOnRegister || isOnLogin || isOnPreview) {
-        return true; // Always allow access to register, login, and preview pages
+      if (isOnRegister || isOnLogin || isOnPreview || isOnChat) {
+        return true; // Always allow access to register, login, chat, and preview pages
       }
 
-      if (isOnChat) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      }
+      // if (isOnChat) {
+      //   if (isLoggedIn) return true;
+      //   return false; // Redirect unauthenticated users to login page
+      // }
 
       if (isLoggedIn) {
         return Response.redirect(new URL("/", nextUrl));

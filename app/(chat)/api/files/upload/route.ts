@@ -1,5 +1,6 @@
 import { auth } from "@/app/(auth)/auth";
 import { insertChunks } from "@/app/db";
+import { getMarkdownContentFromUrl } from "@/utils/markdown";
 import { getPdfContentFromUrl } from "@/utils/pdf";
 import { google } from "@ai-sdk/google";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -26,11 +27,24 @@ export async function POST(request: Request) {
     return new Response("Request body is empty", { status: 400 });
   }
 
-  const { downloadUrl } = await put(`${user.id}/${filename}`, request.body, {
-    access: "public",
-  });
+  const { downloadUrl } = await put(
+    `${user.apiKey}/${filename}`,
+    request.body,
+    {
+      access: "public",
+    }
+  );
 
-  const content = await getPdfContentFromUrl(downloadUrl);
+  let content = "";
+
+  if (filename?.endsWith(".pdf")) {
+    content = await getPdfContentFromUrl(downloadUrl);
+  }
+
+  if (filename?.endsWith(".md") || filename?.endsWith(".markdown")) {
+    content = await getMarkdownContentFromUrl(downloadUrl);
+  }
+
   const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
   });
@@ -43,8 +57,8 @@ export async function POST(request: Request) {
 
   await insertChunks({
     chunks: chunkedContent.map((chunk, i) => ({
-      id: `${user.id}/${filename}/${i}`,
-      filePath: `${user.id}/${filename}`,
+      id: `${user.apiKey}/${filename}/${i}`,
+      filePath: `${user.apiKey}/${filename}`,
       content: chunk.pageContent,
       embedding: embeddings[i],
     })),

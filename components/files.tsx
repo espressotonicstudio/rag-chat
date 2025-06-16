@@ -15,6 +15,9 @@ import cx from "classnames";
 import { motion } from "framer-motion";
 import { useOnClickOutside, useWindowSize } from "usehooks-ts";
 
+/**
+ * @deprecated use FilesList instead
+ */
 export const Files = ({
   selectedFilePathnames,
   setSelectedFilePathnames,

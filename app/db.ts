@@ -3,6 +3,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
 import { chat, chunk, user } from "@/schema";
+import { cache } from "react";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -13,6 +14,22 @@ let db = drizzle(client);
 export async function getUser(email: string) {
   return await db.select().from(user).where(eq(user.email, email));
 }
+
+export const getConfigByApiKey = cache(async (apiKey: string) => {
+  const res = await db
+    .select({
+      email: user.email,
+      filePaths: user.filePaths,
+    })
+    .from(user)
+    .where(eq(user.apiKey, apiKey));
+
+  if (res.length > 0) {
+    return res[0];
+  }
+
+  return null;
+});
 
 export async function createUser(email: string, password: string) {
   let salt = genSaltSync(10);
@@ -49,11 +66,11 @@ export async function createMessage({
   });
 }
 
-export async function getChatsByUser({ email }: { email: string }) {
+export async function getChatsByAuthor({ author }: { author: string }) {
   return await db
     .select()
     .from(chat)
-    .where(eq(chat.author, email))
+    .where(eq(chat.author, author))
     .orderBy(desc(chat.createdAt));
 }
 
@@ -83,4 +100,16 @@ export async function deleteChunksByFilePath({
   filePath: string;
 }) {
   return await db.delete(chunk).where(eq(chunk.filePath, filePath));
+}
+
+export async function updateUserFilePaths(apiKey: string, filePaths: string[]) {
+  const [updatedUser] = await db
+    .update(user)
+    .set({ filePaths })
+    .where(eq(user.apiKey, apiKey))
+    .returning({
+      filePaths: user.filePaths,
+    });
+
+  return updatedUser;
 }

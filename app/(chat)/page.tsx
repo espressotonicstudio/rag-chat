@@ -9,8 +9,9 @@ export default async function Page() {
     <>
       <Chat
         id={generateId()}
+        author={session?.user?.email}
         initialMessages={[]}
-        session={session}
+        apiKey={session?.user?.apiKey}
       />
     </>
   );

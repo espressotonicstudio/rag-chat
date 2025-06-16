@@ -1,13 +1,13 @@
-import { auth } from "@/app/(auth)/auth";
-import { getChatsByUser } from "@/app/db";
+import { getChatsByAuthor } from "@/app/db";
 
-export async function GET() {
-  let session = await auth();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const author = searchParams.get("author");
 
-  if (!session || !session.user) {
-    return Response.json("Unauthorized!", { status: 401 });
+  if (!author) {
+    return Response.json("No author provided", { status: 400 });
   }
 
-  const chats = await getChatsByUser({ email: session.user.email! });
+  const chats = await getChatsByAuthor({ author });
   return Response.json(chats);
 }

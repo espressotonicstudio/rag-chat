@@ -14,9 +14,17 @@ import { fetcher } from "@/utils/functions";
 import cx from "classnames";
 import { Session } from "next-auth";
 
-export const FilesList = ({ session }: { session: Session | null }) => {
+export const FilesList = ({
+  session,
+  config,
+}: {
+  session: Session | null;
+  config: {
+    filePaths: string[] | null;
+  };
+}) => {
   const [selectedFilePathnames, setSelectedFilePathnames] = useState<string[]>(
-    []
+    config.filePaths || []
   );
 
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -33,33 +41,6 @@ export const FilesList = ({ session }: { session: Session | null }) => {
   >("api/files/list", fetcher, {
     fallbackData: [],
   });
-
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    if (isMounted !== false && session && session.user) {
-      localStorage.setItem(
-        `${session.user.email}/selected-file-pathnames`,
-        JSON.stringify(selectedFilePathnames)
-      );
-    }
-  }, [selectedFilePathnames, isMounted, session]);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (session && session.user) {
-      setSelectedFilePathnames(
-        JSON.parse(
-          localStorage.getItem(
-            `${session.user.email}/selected-file-pathnames`
-          ) || "[]"
-        )
-      );
-    }
-  }, [session]);
 
   return (
     <div className="flex-1 bg-white dark:bg-zinc-800 py-32">
@@ -143,14 +124,27 @@ export const FilesList = ({ session }: { session: Session | null }) => {
               <div
                 className="flex flex-row items-center justify-between w-full gap-4"
                 onClick={() => {
-                  setSelectedFilePathnames((currentSelections) => {
-                    if (currentSelections.includes(file.pathname)) {
-                      return currentSelections.filter(
-                        (path) => path !== file.pathname
-                      );
-                    } else {
-                      return [...currentSelections, file.pathname];
-                    }
+                  let operation = "";
+                  let currentSelections = selectedFilePathnames;
+
+                  if (currentSelections.includes(file.pathname)) {
+                    operation = "remove";
+                    currentSelections = currentSelections.filter(
+                      (path) => path !== file.pathname
+                    );
+                  } else {
+                    operation = "add";
+                    currentSelections = [...currentSelections, file.pathname];
+                  }
+
+                  setSelectedFilePathnames(currentSelections);
+
+                  fetch(`/api/files/update`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                      operation,
+                      filePath: file.pathname,
+                    }),
                   });
                 }}
               >

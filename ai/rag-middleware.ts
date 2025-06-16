@@ -12,6 +12,7 @@ import { z } from "zod";
 
 // schema for validating the custom provider metadata
 const selectionSchema = z.object({
+  apiKey: z.string(),
   files: z.object({
     selection: z.array(z.string()),
   }),
@@ -19,10 +20,6 @@ const selectionSchema = z.object({
 
 export const ragMiddleware: LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
-    const session = await auth();
-
-    if (!session) return params; // no user session
-
     const { prompt: messages, providerMetadata } = params;
 
     // validate the provider metadata with Zod:
@@ -50,7 +47,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     // Classify the user prompt as whether it requires more context or not
     const { object: classification } = await generateObject({
       // fast model for classification:
-      model: google("gemini-2.5-flash-preview-04-17", {
+      model: google("gemini-2.0-flash", {
         structuredOutputs: true,
       }),
       output: "enum",
@@ -83,7 +80,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
 
     // find relevant chunks based on the selection
     const chunksBySelection = await getChunksByFilePaths({
-      filePaths: selection.map((path) => `${session.user?.email}/${path}`),
+      filePaths: selection.map((path) => `${data.apiKey}/${path}`),
     });
 
     const chunksWithSimilarity = chunksBySelection.map((chunk) => ({

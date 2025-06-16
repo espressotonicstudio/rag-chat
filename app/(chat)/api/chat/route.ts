@@ -1,14 +1,13 @@
 import { customModel } from "@/ai";
-import { auth } from "@/app/(auth)/auth";
-import { createMessage } from "@/app/db";
+import { createMessage, getConfigByApiKey } from "@/app/db";
 import { streamText } from "ai";
 
 export async function POST(request: Request) {
-  const { id, messages, selectedFilePathnames } = await request.json();
+  const { id, messages, apiKey, author } = await request.json();
 
-  const session = await auth();
+  const config = await getConfigByApiKey(apiKey);
 
-  if (!session) {
+  if (!config) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -18,15 +17,16 @@ export async function POST(request: Request) {
       "you are a friendly assistant! keep your responses concise and helpful.",
     messages,
     experimental_providerMetadata: {
+      apiKey,
       files: {
-        selection: selectedFilePathnames,
+        selection: config.filePaths || [],
       },
     },
     onFinish: async ({ text }) => {
       await createMessage({
         id,
         messages: [...messages, { role: "assistant", content: text }],
-        author: session.user?.email!,
+        author,
       });
     },
     experimental_telemetry: {
