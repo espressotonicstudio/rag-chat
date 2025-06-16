@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -23,15 +24,17 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex flex-col h-dvh bg-white dark:bg-zinc-900">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-center" />
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Toaster position="top-center" />
+            {children}
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
