@@ -43,7 +43,7 @@ export const FilesList = ({
   });
 
   return (
-    <div className="flex-1 bg-white dark:bg-zinc-800 py-32">
+    <div className="bg-white dark:bg-zinc-800 py-16">
       <div className={cx("p-4 flex flex-col gap-4 max-w-screen-md mx-auto")}>
         <div className="flex flex-row justify-between items-center">
           <div className="text-sm flex flex-row gap-3">
@@ -58,19 +58,25 @@ export const FilesList = ({
             required
             className="opacity-0 pointer-events-none w-1"
             accept=".md,.markdown,text/markdown,application/pdf"
-            multiple={false}
+            multiple
             onChange={async (event) => {
-              const file = event.target.files![0];
-              if (file) {
-                setUploadQueue((currentQueue) => [...currentQueue, file.name]);
-                await fetch(`/api/files/upload?filename=${file.name}`, {
-                  method: "POST",
-                  body: file,
-                });
-                setUploadQueue((currentQueue) =>
-                  currentQueue.filter((filename) => filename !== file.name)
-                );
-                mutate([...(files || []), { pathname: file.name }]);
+              const newFiles = event.target.files;
+
+              if (newFiles) {
+                for (const file of newFiles) {
+                  setUploadQueue((currentQueue) => [
+                    ...currentQueue,
+                    file.name,
+                  ]);
+                  fetch(`/api/files/upload?filename=${file.name}`, {
+                    method: "POST",
+                    body: file,
+                  });
+                  setUploadQueue((currentQueue) =>
+                    currentQueue.filter((filename) => filename !== file.name)
+                  );
+                  mutate([...(files || []), { pathname: file.name }]);
+                }
               }
             }}
           />
@@ -112,6 +118,75 @@ export const FilesList = ({
               </div>
             </div>
           ) : null}
+          <div className="flex flex-col gap-4">
+            {files && files.length > 0 && (
+              <div className="flex flex-row p-2 border-b dark:border-zinc-700">
+                <div
+                  className="flex flex-row items-center justify-between w-full gap-4 cursor-pointer"
+                  onClick={() => {
+                    const allSelected = files.every((file) =>
+                      selectedFilePathnames.includes(file.pathname)
+                    );
+
+                    if (allSelected) {
+                      files.forEach((file) => {
+                        fetch(`/api/files/update`, {
+                          method: "PATCH",
+                          body: JSON.stringify({
+                            operation: "remove",
+                            filePath: file.pathname,
+                          }),
+                        });
+                      });
+
+                      setSelectedFilePathnames([]);
+                      return;
+                    }
+
+                    const onlyDiffs = files.filter(
+                      (file) => !selectedFilePathnames.includes(file.pathname)
+                    );
+
+                    setSelectedFilePathnames(
+                      files.map((file) => file.pathname)
+                    );
+
+                    onlyDiffs.forEach((pathname) => {
+                      fetch(`/api/files/update`, {
+                        method: "PATCH",
+                        body: JSON.stringify({
+                          operation: "add",
+                          filePath: pathname,
+                        }),
+                      });
+                    });
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    {files.every((file) =>
+                      selectedFilePathnames.includes(file.pathname)
+                    ) ? (
+                      <CheckedSquare />
+                    ) : (
+                      <UncheckedSquare />
+                    )}
+                    <div
+                      className={cx(
+                        "cursor-pointer text-sm",
+                        files.every((file) =>
+                          selectedFilePathnames.includes(file.pathname)
+                        )
+                          ? "text-blue-600 dark:text-zinc-50"
+                          : "text-zinc-500"
+                      )}
+                    >
+                      Select all files
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           {files?.map((file: any) => (
             <div
               key={file.pathname}

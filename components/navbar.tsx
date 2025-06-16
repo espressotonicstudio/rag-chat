@@ -2,6 +2,14 @@ import { auth, signOut } from "@/app/(auth)/auth";
 import Link from "next/link";
 import { History } from "./history";
 import { Button } from "./ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { CopyButton } from "./copy-button";
+import { Suspense } from "react";
 
 export const Navbar = async () => {
   let session = await auth();
@@ -18,31 +26,43 @@ export const Navbar = async () => {
       {session ? (
         <>
           <div className="group py-1 px-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer relative">
-            <div className="text-sm dark:text-zinc-400 z-10">
-              {session.user?.email}
-            </div>
-            <div className="flex-col absolute top-6 right-0 w-full pt-5 group-hover:flex hidden">
-              <form
-                action={async () => {
-                  "use server";
-                  await signOut();
-                }}
-              >
-                <button
-                  type="submit"
-                  className="text-sm w-full p-1 rounded-md bg-red-500 text-red-50 hover:bg-red-600"
-                >
-                  Sign out
-                </button>
-              </form>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-sm">
+                {session.user?.email}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Suspense>
+                    <CopyButton value={session.user?.apiKey}>
+                      <Button
+                        variant="ghost"
+                        className="w-full bg-background h-auto overflow-hidden text-ellipsis whitespace-nowrap text-left block max-w-[200px]"
+                      >
+                        {session.user?.apiKey}
+                      </Button>
+                    </CopyButton>
+                  </Suspense>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <form
+                    className="!p-0"
+                    action={async () => {
+                      "use server";
+                      await signOut();
+                    }}
+                  >
+                    <Button
+                      className="w-full h-auto"
+                      variant="ghost"
+                      type="submit"
+                    >
+                      Sign out
+                    </Button>
+                  </form>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <Button
-            variant="ghost"
-            className="text-xs"
-          >
-            {session.user?.apiKey}
-          </Button>
         </>
       ) : (
         <Link
