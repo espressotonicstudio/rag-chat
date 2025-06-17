@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Chat Widget Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @font-face {
+      font-family: "uncut sans";
+      src: url("/uncut-sans.woff2") format("woff2");
+    }
+
+    * {
+      font-family: "uncut sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              50: '#fafafa',
+              100: '#f4f4f5',
+              200: '#e4e4e7',
+              300: '#d4d4d8',
+              400: '#a1a1aa',
+              500: '#71717a',
+              600: '#52525b',
+              700: '#3f3f46',
+              800: '#27272a',
+              900: '#18181b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 h-full">
+  <div class="max-w-4xl mx-auto p-6 space-y-8">
+    <!-- Header -->
+    <div class="border-b border-zinc-200 dark:border-zinc-700 pb-6">
+      <h1 class="text-3xl font-normal text-zinc-900 dark:text-zinc-100 mb-2">
+        RAG Chat Widget Demo
+      </h1>
+      <p class="text-zinc-500 dark:text-zinc-400">
+        Add AI-powered chat to any website with our embeddable widget
+      </p>
+    </div>
+
+    <!-- Integration Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        📋 Integration Instructions
+      </h2>
+      <p class="text-zinc-600 dark:text-zinc-300 mb-4">
+        Add this code to your website before the closing <code
+          class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded text-sm">&lt;/body&gt;</code> tag:
+      </p>
+
+      <div class="bg-zinc-900 dark:bg-zinc-950 text-zinc-100 p-4 rounded-md overflow-x-auto">
+        <pre class="text-sm"><code>&lt;script&gt;
+  window.RagChatConfig = {
+  apiKey: "your-api-key-here",           // Required: Your RAG Chat API key
+  // author: "custom-user-id",           // Optional: Visitor identifier (auto-generated UUID if not provided)
+  position: "bottom-right",              // Optional: 'bottom-right' or 'bottom-left'
+  primaryColor: "#007bff",               // Optional: Brand color for the chat button
+  baseUrl: "https://yourapp.com"         // Optional: Your domain (defaults to current)
+};
+&lt;/script&gt;
+&lt;script
+  src="https://yourapp.com/widget/loader.js"
+  async
+&gt;&lt;/script&gt;</code></pre>
+      </div>
+
+      <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+        <p class="text-amber-800 dark:text-amber-200 text-sm">
+          <strong>Note:</strong> Replace <code
+            class="bg-amber-100 dark:bg-amber-800 px-1 py-0.5 rounded">your-api-key-here</code> with your actual API key
+          and <code class="bg-amber-100 dark:bg-amber-800 px-1 py-0.5 rounded">https://yourapp.com</code> with your
+          domain.
+        </p>
+      </div>
+    </div>
+
+    <!-- Interactive Demo Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        🎮 Interactive Demo
+      </h2>
+      <p class="text-zinc-600 dark:text-zinc-300 mb-4">
+        The chat widget should appear in the bottom-right corner. Try these controls:
+      </p>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="RagChatWidget.open()"
+          class="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 px-3 py-2 rounded-md text-sm transition-colors">
+          Open Chat
+        </button>
+        <button onclick="RagChatWidget.close()"
+          class="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 px-3 py-2 rounded-md text-sm transition-colors">
+          Close Chat
+        </button>
+        <button onclick="RagChatWidget.toggle()"
+          class="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 px-3 py-2 rounded-md text-sm transition-colors">
+          Toggle Chat
+        </button>
+        <button onclick="alert('Chat is ' + (RagChatWidget.isOpen() ? 'open' : 'closed'))"
+          class="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 px-3 py-2 rounded-md text-sm transition-colors">
+          Check Status
+        </button>
+      </div>
+    </div>
+
+    <!-- Configuration Table -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        ⚙️ Configuration Options
+      </h2>
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-zinc-200 dark:border-zinc-600">
+              <th class="text-left py-2 text-zinc-600 dark:text-zinc-300 font-medium">Option</th>
+              <th class="text-left py-2 text-zinc-600 dark:text-zinc-300 font-medium">Type</th>
+              <th class="text-left py-2 text-zinc-600 dark:text-zinc-300 font-medium">Default</th>
+              <th class="text-left py-2 text-zinc-600 dark:text-zinc-300 font-medium">Description</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            <tr class="border-b border-zinc-100 dark:border-zinc-700">
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">apiKey</code></td>
+              <td class="py-2 text-zinc-500">string</td>
+              <td class="py-2"><strong class="text-red-600 dark:text-red-400">required</strong></td>
+              <td class="py-2 text-zinc-600 dark:text-zinc-300">Your RAG Chat API key</td>
+            </tr>
+            <tr class="border-b border-zinc-100 dark:border-zinc-700">
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">author</code></td>
+              <td class="py-2 text-zinc-500">string</td>
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">auto-generated UUID</code>
+              </td>
+              <td class="py-2 text-zinc-600 dark:text-zinc-300">Visitor identifier (generated automatically)</td>
+            </tr>
+            <tr class="border-b border-zinc-100 dark:border-zinc-700">
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">position</code></td>
+              <td class="py-2 text-zinc-500">string</td>
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">'bottom-right'</code></td>
+              <td class="py-2 text-zinc-600 dark:text-zinc-300">Widget position</td>
+            </tr>
+            <tr class="border-b border-zinc-100 dark:border-zinc-700">
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">primaryColor</code></td>
+              <td class="py-2 text-zinc-500">string</td>
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">'#000000'</code></td>
+              <td class="py-2 text-zinc-600 dark:text-zinc-300">Chat button color</td>
+            </tr>
+            <tr>
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">baseUrl</code></td>
+              <td class="py-2 text-zinc-500">string</td>
+              <td class="py-2"><code class="bg-zinc-200 dark:bg-zinc-700 px-1 py-0.5 rounded">auto-detected</code></td>
+              <td class="py-2 text-zinc-600 dark:text-zinc-300">Your RAG Chat domain</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        ✨ Features
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Intercom-style floating chat button</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Smooth animations and transitions</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Responsive design (mobile-friendly)</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Escape key to close</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Customizable position and colors</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">High z-index to appear above all content</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Lightweight and fast loading</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Cross-origin iframe security</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-green-500">✓</div>
+          <span class="text-zinc-600 dark:text-zinc-300">Public JavaScript API</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript API Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        🔧 JavaScript API
+      </h2>
+      <div class="bg-zinc-900 dark:bg-zinc-950 text-zinc-100 p-4 rounded-md overflow-x-auto">
+        <pre class="text-sm"><code>// Open the chat widget
+RagChatWidget.open();
+
+// Close the chat widget
+RagChatWidget.close();
+
+// Toggle the chat widget
+RagChatWidget.toggle();
+
+// Check if chat is open
+const isOpen = RagChatWidget.isOpen();
+
+// Destroy the widget (remove from page)
+RagChatWidget.destroy();</code></pre>
+      </div>
+    </div>
+
+    <!-- Troubleshooting Section -->
+    <div class="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
+      <h2 class="text-xl font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+        🔍 Troubleshooting
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <h3 class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Test the API</h3>
+          <p class="text-zinc-600 dark:text-zinc-300 text-sm mb-2">
+            Click this button to run automated tests on the RagChatWidget API:
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="testRagChatWidgetAPI()"
+              class="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm transition-colors">
+              Run API Tests
+            </button>
+            <button onclick="checkWidgetStatus()"
+              class="bg-green-600 text-white hover:bg-green-700 px-3 py-2 rounded-md text-sm transition-colors">
+              Check Status
+            </button>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Check Console</h3>
+          <p class="text-zinc-600 dark:text-zinc-300 text-sm">
+            Open your browser's developer console (F12) to see detailed logs from the widget initialization and API
+            calls.
+          </p>
+        </div>
+        <div>
+          <h3 class="font-medium text-zinc-800 dark:text-zinc-200 mb-2">Manual Console Commands</h3>
+          <div class="bg-zinc-900 dark:bg-zinc-950 text-zinc-100 p-3 rounded-md text-sm">
+            <div>RagChatWidget.open() - Open the chat</div>
+            <div>RagChatWidget.close() - Close the chat</div>
+            <div>RagChatWidget.toggle() - Toggle chat state</div>
+            <div>RagChatWidget.isOpen() - Check if open</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dark Mode Toggle -->
+    <div class="flex justify-center">
+      <button onclick="toggleDarkMode()"
+        class="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 text-sm">
+        Toggle Dark Mode
+      </button>
+    </div>
+  </div>
+
+  <!-- Widget Integration Example -->
+  <script>
+    window.RagChatConfig = {
+      apiKey: "488407d1-040a-4f8d-a3a6-5a4e72563f1b",
+      // author will be auto-generated as a UUID
+      position: "bottom-right",
+      primaryColor: "#18181b",
+      baseUrl: window.location.origin
+    };
+
+    // Debug function to check widget status
+    function checkWidgetStatus() {
+      console.log("Widget status check:");
+      console.log("- RagChatConfig:", window.RagChatConfig);
+      console.log("- RagChatWidget available:", typeof window.RagChatWidget !== 'undefined');
+      if (window.RagChatWidget) {
+        console.log("- Widget is open:", window.RagChatWidget.isOpen());
+      }
+    }
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // Auto-detect system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <script src="/widget/loader.js" async></script>
+</body>
+
+</html>

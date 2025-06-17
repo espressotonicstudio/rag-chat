@@ -21,7 +21,7 @@ export const ChatLauncher = () => {
               className="border border-black/20 dark:border-white/20 rounded-lg overflow-hidden"
             >
               <iframe
-                src="/embed?isIframe=true"
+                src="/frame"
                 className="w-[400px] h-[600px]"
               />
             </motion.div>

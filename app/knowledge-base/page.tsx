@@ -25,7 +25,7 @@ export default async function Page() {
       </div>
       <div className="rounded-lg overflow-hidden">
         <iframe
-          src={`/frame?isIframe=true&apiKey=${session?.user?.apiKey}&author=${session?.user?.email}`}
+          src={`/frame?apiKey=${session?.user?.apiKey}&author=${session?.user?.email}`}
           className="w-full h-full"
         />
       </div>
