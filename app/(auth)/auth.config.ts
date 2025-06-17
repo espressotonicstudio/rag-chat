@@ -29,7 +29,7 @@ export const authConfig = {
       let isOnPreview = nextUrl.pathname.startsWith("/preview");
 
       if (isLoggedIn && (isOnLogin || isOnRegister)) {
-        return Response.redirect(new URL("/admin", nextUrl));
+        return Response.redirect(new URL("/knowledge-base", nextUrl));
       }
 
       if (isOnRegister || isOnLogin || isOnPreview || isOnChat) {
@@ -37,7 +37,7 @@ export const authConfig = {
       }
 
       if (isLoggedIn) {
-        return Response.redirect(new URL("/admin", nextUrl));
+        return Response.redirect(new URL("/knowledge-base", nextUrl));
       }
 
       return true;
