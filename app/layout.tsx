@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "next-auth/react";
+import { WebVitals } from "@/lib/axiom/client";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -35,6 +36,7 @@ export default function RootLayout({
             {children}
           </ThemeProvider>
         </SessionProvider>
+        <WebVitals />
       </body>
     </html>
   );
