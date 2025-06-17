@@ -31,7 +31,7 @@ export default async function Layout({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Knowledge Base</BreadcrumbPage>
+                  <BreadcrumbPage>Inquiries</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

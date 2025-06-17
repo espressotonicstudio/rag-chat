@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { desc, eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { chat, chunk, user } from "@/schema";
+import { chat, chunk, user, suggestedQuestions } from "@/schema";
 import { cache } from "react";
 
 // Optionally, if not using email/pass login, you can
@@ -123,4 +123,49 @@ export async function updateUserFilePaths(apiKey: string, filePaths: string[]) {
     });
 
   return updatedUser;
+}
+
+// Suggested Questions functions
+export async function getSuggestedQuestionsByApiKey({
+  apiKey,
+}: {
+  apiKey: string;
+}) {
+  return await db
+    .select()
+    .from(suggestedQuestions)
+    .where(eq(suggestedQuestions.apiKey, apiKey))
+    .orderBy(desc(suggestedQuestions.createdAt));
+}
+
+export async function createSuggestedQuestion({
+  question,
+  apiKey,
+}: {
+  question: string;
+  apiKey: string;
+}) {
+  return await db.insert(suggestedQuestions).values({
+    question,
+    apiKey,
+  });
+}
+
+export async function updateSuggestedQuestion({
+  id,
+  question,
+}: {
+  id: string;
+  question: string;
+}) {
+  return await db
+    .update(suggestedQuestions)
+    .set({ question })
+    .where(eq(suggestedQuestions.id, id));
+}
+
+export async function deleteSuggestedQuestion({ id }: { id: string }) {
+  return await db
+    .delete(suggestedQuestions)
+    .where(eq(suggestedQuestions.id, id));
 }

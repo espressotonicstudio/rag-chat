@@ -94,7 +94,11 @@ export const GitIcon = () => {
       </g>
       <defs>
         <clipPath id="clip0_872_3147">
-          <rect width="16" height="16" fill="white"></rect>
+          <rect
+            width="16"
+            height="16"
+            fill="white"
+          ></rect>
         </clipPath>
       </defs>
     </svg>
@@ -294,7 +298,11 @@ export const LoaderIcon = ({ size = 16 }: { size?: number }) => {
       style={{ color: "currentcolor" }}
     >
       <g clipPath="url(#clip0_2393_1490)">
-        <path d="M8 0V4" stroke="currentColor" strokeWidth="1.5"></path>
+        <path
+          d="M8 0V4"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        ></path>
         <path
           opacity="0.5"
           d="M8 16V12"
@@ -352,7 +360,11 @@ export const LoaderIcon = ({ size = 16 }: { size?: number }) => {
       </g>
       <defs>
         <clipPath id="clip0_2393_1490">
-          <rect width="16" height="16" fill="white"></rect>
+          <rect
+            width="16"
+            height="16"
+            fill="white"
+          ></rect>
         </clipPath>
       </defs>
     </svg>
@@ -509,6 +521,82 @@ export const InfoIcon = ({ size = 16 }: { size?: number }) => {
         fillRule="evenodd"
         clipRule="evenodd"
         d="M16 8C16 12.4183 12.4183 16 8 16C3.58172 16 0 12.4183 0 8C0 3.58172 3.58172 0 8 0C12.4183 0 16 3.58172 16 8ZM6.25002 7H7.00002H7.75C8.30229 7 8.75 7.44772 8.75 8V11.5V12.25H7.25V11.5V8.5H7.00002H6.25002V7ZM8 6C8.55229 6 9 5.55228 9 5C9 4.44772 8.55229 4 8 4C7.44772 4 7 4.44772 7 5C7 5.55228 7.44772 6 8 6Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+  );
+};
+
+export const CheckIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: "currentcolor" }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M13.7803 4.21967L14.3107 4.75L13.25 5.81066L12.7197 5.28033L6.5 11.5L3.28033 8.28033L2.75 7.75L3.81066 6.68934L4.34099 7.21967L6.5 9.37868L13.7803 4.21967Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+  );
+};
+
+export const XIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: "currentcolor" }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M2.21967 2.21967C2.51256 1.92678 2.98744 1.92678 3.28033 2.21967L8 6.93934L12.7197 2.21967C13.0126 1.92678 13.4874 1.92678 13.7803 2.21967C14.0732 2.51256 14.0732 2.98744 13.7803 3.28033L9.06066 8L13.7803 12.7197C14.0732 13.0126 14.0732 13.4874 13.7803 13.7803C13.4874 14.0732 13.0126 14.0732 12.7197 13.7803L8 9.06066L3.28033 13.7803C2.98744 14.0732 2.51256 14.0732 2.21967 13.7803C1.92678 13.4874 1.92678 13.0126 2.21967 12.7197L6.93934 8L2.21967 3.28033C1.92678 2.98744 1.92678 2.51256 2.21967 2.21967Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+  );
+};
+
+export const EditIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: "currentcolor" }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M11.75 0.189331L12.2803 0.719661L15.2803 3.71966L15.8107 4.24999L15.2803 4.78032L5.15901 14.9016C4.45575 15.6049 3.50192 16 2.50736 16H0.75H0V15.25V13.4926C0 12.4981 0.395088 11.5442 1.09835 10.841L11.2197 0.719661L11.75 0.189331ZM11.75 2.31065L9.81066 4.24999L11.75 6.18933L13.6893 4.24999L11.75 2.31065ZM2.15901 11.9016L8.75 5.31065L10.6893 7.24999L4.09835 13.841C3.67639 14.2629 3.1041 14.5 2.50736 14.5H1.5V13.4926C1.5 12.8959 1.73705 12.3236 2.15901 11.9016Z"
+        fill="currentColor"
+      ></path>
+    </svg>
+  );
+};
+
+export const PlusIcon = ({ size = 16 }: { size?: number }) => {
+  return (
+    <svg
+      height={size}
+      strokeLinejoin="round"
+      viewBox="0 0 16 16"
+      width={size}
+      style={{ color: "currentcolor" }}
+    >
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M8.75 1.75V1H7.25V1.75V7.25H1.75H1V8.75H1.75H7.25V14.25V15H8.75V14.25V8.75H14.25H15V7.25H14.25H8.75V1.75Z"
         fill="currentColor"
       ></path>
     </svg>

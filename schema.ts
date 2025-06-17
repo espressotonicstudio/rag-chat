@@ -35,8 +35,19 @@ export const chunk = pgTable("Chunk", {
   embedding: real("embedding").array().notNull(),
 });
 
+export const suggestedQuestions = pgTable("SuggestedQuestions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  question: text("question").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  apiKey: uuid("apiKey")
+    .notNull()
+    .references(() => user.apiKey),
+});
+
 export type Chat = Omit<InferSelectModel<typeof chat>, "messages"> & {
   messages: Array<Message>;
 };
 
 export type Chunk = InferSelectModel<typeof chunk>;
+
+export type SuggestedQuestion = InferSelectModel<typeof suggestedQuestions>;

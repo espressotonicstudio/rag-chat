@@ -47,13 +47,13 @@ const data = {
   navMain: [
     {
       title: "Knowledge Base",
-      url: "/admin",
+      url: "/knowledge-base",
       icon: SquareTerminal,
       isActive: true,
       items: [
         {
-          title: "Settings",
-          url: "#",
+          title: "Suggested Questions",
+          url: "/knowledge-base/suggested-questions",
         },
       ],
     },
