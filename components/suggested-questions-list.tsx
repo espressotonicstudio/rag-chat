@@ -122,21 +122,16 @@ export const SuggestedQuestionsList = ({
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-800 h-full">
+    <div className="h-full">
       <div className={cx("p-4 flex flex-col gap-4 max-w-screen-md mx-auto")}>
         <div className="flex flex-row justify-between items-center">
-          <div className="text-sm flex flex-row gap-3">
-            <div className="text-zinc-900 dark:text-zinc-300">
-              Manage Suggested Questions
-            </div>
-          </div>
-          <div
-            className="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 flex flex-row gap-2 items-center dark:text-zinc-800 text-sm dark:bg-zinc-100 rounded-md p-1 px-2 dark:hover:bg-zinc-200 cursor-pointer"
-            onClick={() => setIsAddingNew(true)}
-          >
+          <p className="text-sm flex flex-row gap-3">
+            Manage Suggested Questions
+          </p>
+          <Button onClick={() => setIsAddingNew(true)}>
             <PlusIcon />
             <div>Add Question</div>
-          </div>
+          </Button>
         </div>
 
         {isLoading ? (
@@ -158,7 +153,7 @@ export const SuggestedQuestionsList = ({
           deleteQueue.length === 0 &&
           !isAddingNew ? (
           <div className="flex flex-col gap-4 items-center justify-center h-full">
-            <div className="flex flex-row gap-2 items-center text-zinc-500 dark:text-zinc-400 text-sm">
+            <div className="flex flex-row gap-2 items-center text-sm">
               <InfoIcon />
               <div>No suggested questions found</div>
             </div>

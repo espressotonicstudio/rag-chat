@@ -8,6 +8,10 @@ import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import useSWR from "swr";
 import { fetcher } from "@/utils/functions";
 import { SuggestedQuestion } from "@/schema";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
+import { ArrowUpIcon } from "lucide-react";
 
 export function Chat({
   id,
@@ -43,7 +47,7 @@ export function Chat({
     useScrollToBottom<HTMLDivElement>();
 
   return (
-    <div className="flex flex-row justify-center h-full px-3 py-6">
+    <div className="bg-muted flex flex-row justify-center h-full px-3 py-6">
       <div className="flex flex-col justify-between items-center gap-4 w-full">
         <div
           ref={messagesContainerRef}
@@ -74,19 +78,20 @@ export function Chat({
                   key={index}
                   className={index > 1 ? "hidden sm:block" : "block"}
                 >
-                  <button
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
                     onClick={async () => {
                       append({
                         role: "user",
                         content: suggestedQuestion.question,
                       });
                     }}
-                    className="w-full text-left border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-300 rounded-lg p-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors flex flex-col"
                   >
                     <span className="font-medium">
                       {suggestedQuestion.question}
                     </span>
-                  </button>
+                  </Button>
                 </motion.div>
               ))}
             </div>
@@ -94,17 +99,26 @@ export function Chat({
 
         {!readonly && (
           <form
-            className="flex flex-row gap-2 relative items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0"
+            className="relative flex flex-row gap-2 items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0"
             onSubmit={handleSubmit}
           >
-            <input
-              className="bg-zinc-100 rounded-md px-2 py-1.5 flex-1 outline-none dark:bg-zinc-700 text-zinc-800 dark:text-zinc-300"
+            <Textarea
+              rows={2}
+              className="resize-none bg-background"
               placeholder="Send a message..."
               value={input}
               onChange={(event) => {
                 setInput(event.target.value);
               }}
             />
+            <Button
+              size="icon"
+              type="submit"
+              variant="outline"
+              className="absolute bottom-2 right-6"
+            >
+              <ArrowUpIcon />
+            </Button>
           </form>
         )}
       </div>

@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "./ui/button";
 
 export const FilesList = ({
   session,
@@ -52,14 +53,10 @@ export const FilesList = ({
   });
 
   return (
-    <div className="bg-white dark:bg-zinc-800 h-full">
+    <div className="h-full">
       <div className={cx("p-4 flex flex-col gap-4 max-w-screen-md mx-auto")}>
         <div className="flex flex-row justify-between items-center">
-          <div className="text-sm flex flex-row gap-3">
-            <div className="text-zinc-900 dark:text-zinc-300">
-              Manage Knowledge Base
-            </div>
-          </div>
+          <p className="text-sm flex flex-row gap-3">Manage Knowledge Base</p>
           <input
             name="file"
             ref={inputFileRef}
@@ -77,7 +74,7 @@ export const FilesList = ({
                     ...currentQueue,
                     file.name,
                   ]);
-                  fetch(`/api/files/upload?filename=${file.name}`, {
+                  fetch(`/frame/api/files/upload?filename=${file.name}`, {
                     method: "POST",
                     body: file,
                   });
@@ -89,15 +86,14 @@ export const FilesList = ({
               }
             }}
           />
-          <div
-            className="bg-zinc-900 text-zinc-50 hover:bg-zinc-800 flex flex-row gap-2 items-center dark:text-zinc-800 text-sm dark:bg-zinc-100 rounded-md p-1 px-2 dark:hover:bg-zinc-200 cursor-pointer"
+          <Button
             onClick={() => {
               inputFileRef.current?.click();
             }}
           >
             <UploadIcon />
             <div>Upload a file</div>
-          </div>
+          </Button>
         </div>
 
         {isLoading ? (
@@ -120,7 +116,7 @@ export const FilesList = ({
           uploadQueue.length === 0 &&
           deleteQueue.length === 0 ? (
           <div className="flex flex-col gap-4 items-center justify-center h-full">
-            <div className="flex flex-row gap-2 items-center text-zinc-500 dark:text-zinc-400 text-sm">
+            <div className="flex flex-row gap-2 items-center text-sm">
               <InfoIcon />
               <div>No files found</div>
             </div>
@@ -142,7 +138,7 @@ export const FilesList = ({
                       );
 
                       if (allSelected) {
-                        fetch(`/api/files/update`, {
+                        fetch(`/frame/api/files/update`, {
                           method: "PATCH",
                           body: JSON.stringify({
                             operation: "remove",
@@ -162,7 +158,7 @@ export const FilesList = ({
                         files?.map((file) => file.pathname) || []
                       );
 
-                      fetch(`/api/files/update`, {
+                      fetch(`/frame/api/files/update`, {
                         method: "PATCH",
                         body: JSON.stringify({
                           operation: "add",
@@ -217,7 +213,7 @@ export const FilesList = ({
 
                         setSelectedFilePathnames(currentSelections);
 
-                        fetch(`/api/files/update`, {
+                        fetch(`/frame/api/files/update`, {
                           method: "PATCH",
                           body: JSON.stringify({
                             operation,
@@ -248,9 +244,12 @@ export const FilesList = ({
                           ...currentQueue,
                           file.pathname,
                         ]);
-                        await fetch(`/api/files/delete?fileurl=${file.url}`, {
-                          method: "DELETE",
-                        });
+                        await fetch(
+                          `/frame/api/files/delete?fileurl=${file.url}`,
+                          {
+                            method: "DELETE",
+                          }
+                        );
                         setDeleteQueue((currentQueue) =>
                           currentQueue.filter(
                             (filename) => filename !== file.pathname
