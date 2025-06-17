@@ -23,7 +23,7 @@ export const authConfig = {
     },
     authorized({ auth, request: { nextUrl } }) {
       let isLoggedIn = !!auth?.user;
-      let isOnChat = nextUrl.pathname.startsWith("/");
+      let isOnChat = nextUrl.pathname.startsWith("/frame");
       let isOnRegister = nextUrl.pathname.startsWith("/register");
       let isOnLogin = nextUrl.pathname.startsWith("/login");
       let isOnPreview = nextUrl.pathname.startsWith("/preview");
@@ -34,10 +34,6 @@ export const authConfig = {
 
       if (isOnRegister || isOnLogin || isOnPreview || isOnChat) {
         return true; // Always allow access to register, login, chat, and preview pages
-      }
-
-      if (isLoggedIn) {
-        return Response.redirect(new URL("/knowledge-base", nextUrl));
       }
 
       return true;

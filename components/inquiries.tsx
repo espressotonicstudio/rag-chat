@@ -33,7 +33,7 @@ export const Inquiries = ({
     error,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(`/api/history?apiKey=${apiKey}`, fetcher, {
+  } = useSWR<Array<Chat>>(`/frame/api/history?apiKey=${apiKey}`, fetcher, {
     fallbackData: [],
   });
 

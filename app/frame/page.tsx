@@ -10,14 +10,14 @@ export default async function Page({
     author: string | null | undefined;
   }>;
 }) {
-  const session = await auth();
+  // const session = await auth();
 
   let { apiKey, author } = await searchParams;
 
-  if (session) {
-    apiKey = session.user.apiKey;
-    author = session.user.email;
-  }
+  // if (session) {
+  //   apiKey = session.user.apiKey;
+  //   author = session.user.email;
+  // }
 
   return (
     <>

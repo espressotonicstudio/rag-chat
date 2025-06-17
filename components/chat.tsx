@@ -24,6 +24,7 @@ export function Chat({
 }) {
   const { messages, handleSubmit, input, setInput, append } = useChat({
     body: { id, apiKey, author },
+    api: "/frame/api/chat",
     initialMessages,
     onFinish: () => {
       window.history.replaceState({}, "", `/${id}`);

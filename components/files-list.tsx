@@ -47,7 +47,7 @@ export const FilesList = ({
     Array<{
       pathname: string;
     }>
-  >("api/files/list", fetcher, {
+  >("/frame/api/files/list", fetcher, {
     fallbackData: [],
   });
 
