@@ -92,7 +92,7 @@ export const FilesList = ({
             }}
           >
             <UploadIcon />
-            <div>Upload a file</div>
+            <div>Upload documents</div>
           </Button>
         </div>
 
