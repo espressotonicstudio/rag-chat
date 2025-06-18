@@ -3,15 +3,18 @@
 import { Message } from "ai";
 import { useChat } from "@ai-sdk/react";
 import { motion } from "framer-motion";
-import { Message as PreviewMessage } from "@/components/message";
+import {
+  Message as PreviewMessage,
+  ThinkingMessage,
+} from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import useSWR from "swr";
 import { fetcher } from "@/utils/functions";
 import { SuggestedQuestion } from "@/schema";
-import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ArrowUpIcon } from "lucide-react";
+import { useRef } from "react";
 
 export function Chat({
   id,
@@ -26,7 +29,7 @@ export function Chat({
   author: string | null | undefined;
   readonly?: boolean;
 }) {
-  const { messages, handleSubmit, input, setInput, append } = useChat({
+  const { status, messages, handleSubmit, input, setInput, append } = useChat({
     body: { id, apiKey, author },
     api: "/frame/api/chat",
     initialMessages,
@@ -46,6 +49,9 @@ export function Chat({
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
   return (
     <div className="bg-muted flex flex-row justify-center h-full px-3 py-6">
       <div className="flex flex-col justify-between items-center gap-4 w-full">
@@ -60,6 +66,8 @@ export function Chat({
               content={message.content}
             />
           ))}
+          {status === "submitted" && <ThinkingMessage />}
+
           <div
             ref={messagesEndRef}
             className="flex-shrink-0 min-w-[24px] min-h-[24px]"
@@ -99,10 +107,14 @@ export function Chat({
 
         {!readonly && (
           <form
+            ref={formRef}
             className="relative flex flex-row gap-2 items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0"
             onSubmit={handleSubmit}
           >
             <Textarea
+              autoFocus
+              ref={inputRef}
+              disabled={status === "submitted" || status === "streaming"}
               rows={2}
               className="resize-none bg-background"
               placeholder="Send a message..."
@@ -110,8 +122,17 @@ export function Chat({
               onChange={(event) => {
                 setInput(event.target.value);
               }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  if (input.trim() !== "") {
+                    formRef.current?.requestSubmit();
+                  }
+                }
+              }}
             />
             <Button
+              disabled={status === "submitted" || status === "streaming"}
               size="icon"
               type="submit"
               variant="outline"

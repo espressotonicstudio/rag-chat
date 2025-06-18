@@ -178,7 +178,7 @@ export const FilesList = ({
                   </div>
                 </TableHead>
                 <TableHead>Filename</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
+                <TableHead className="w-[100px] text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -237,8 +237,10 @@ export const FilesList = ({
                     {file.pathname}
                   </TableCell>
                   <TableCell className="text-right">
-                    <div
-                      className="text-zinc-500 hover:bg-red-100 dark:text-zinc-500 hover:dark:bg-zinc-700 hover:text-red-500 p-1 px-2 cursor-pointer rounded-md inline-flex"
+                    <Button
+                      variant="ghost"
+                      className="p-1.5 size-auto"
+                      size="icon"
                       onClick={async () => {
                         setDeleteQueue((currentQueue) => [
                           ...currentQueue,
@@ -265,8 +267,8 @@ export const FilesList = ({
                         );
                       }}
                     >
-                      <TrashIcon />
-                    </div>
+                      <TrashIcon size={14} />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

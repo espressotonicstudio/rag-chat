@@ -42,8 +42,8 @@ export const Inquiries = ({
   }, [pathname, mutate]);
 
   return (
-    <div className="size-full p-3 flex flex-col gap-6 bg-white dark:bg-zinc-800 z-20">
-      <div className="flex flex-col overflow-y-scroll">
+    <div className="size-full p-3 flex flex-col gap-6">
+      <div className="flex flex-col overflow-y-scroll max-w-screen-md w-full mx-auto">
         {error && error.status === 401 ? (
           <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
             <InfoIcon />
@@ -78,21 +78,22 @@ export const Inquiries = ({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="text-center">Date</TableHead>
                 <TableHead>Inquiry</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {history.map((chat) => (
                 <TableRow
                   key={chat.id}
-                  className={cx(
-                    "cursor-pointer group hover:bg-zinc-100 dark:hover:bg-zinc-700",
-                    {
-                      "bg-zinc-100 dark:bg-zinc-700": id === chat.id,
-                    }
-                  )}
+                  className={cx("cursor-pointer group hover:bg-muted", {
+                    "bg-muted": id === chat.id,
+                  })}
                 >
+                  <TableCell className="text-center">
+                    {new Date(chat.createdAt).toLocaleDateString()}
+                  </TableCell>
                   <TableCell>
                     <Link
                       href={`/inquiries/${chat.id}`}
@@ -101,7 +102,7 @@ export const Inquiries = ({
                       {chat.messages[0].content as string}
                     </Link>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Badge
                       variant="destructive"
                       className="text-xs"

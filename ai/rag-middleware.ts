@@ -47,9 +47,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     // Classify the user prompt as whether it requires more context or not
     const { object: classification } = await generateObject({
       // fast model for classification:
-      model: google("gemini-2.0-flash", {
-        structuredOutputs: true,
-      }),
+      model: google("gemini-2.0-flash"),
       output: "enum",
       enum: ["question", "statement", "other"],
       system: "classify the user message as a question, statement, or other",
@@ -65,9 +63,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     // Use hypothetical document embeddings:
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
-      model: google("gemini-2.5-flash-preview-04-17", {
-        structuredOutputs: true,
-      }),
+      model: google("gemini-2.5-flash-preview-04-17"),
       system: "Answer the users question:",
       prompt: lastUserMessageContent,
     });
