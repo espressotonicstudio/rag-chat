@@ -18,6 +18,24 @@ const selectionSchema = z.object({
   }),
 });
 
+// enhanced classification schema for small business website visitors
+const classificationSchema = z.object({
+  type: z.enum([
+    "product-service-inquiry", // asking about products, services, features, availability
+    "pricing-cost-question", // asking about prices, costs, fees, payment options
+    "location-hours-contact", // asking about location, hours, contact info, directions
+    "booking-appointment", // asking about scheduling, booking, availability
+    "support-help-question", // asking for help, troubleshooting, how-to questions
+    "company-about-info", // asking about company history, team, values, story
+    "general-inquiry", // general questions that need business context
+    "casual-statement", // casual statements or greetings that don't need context
+    "other", // unclear or off-topic
+  ]),
+  complexity: z.enum(["simple", "complex"]),
+  requiresContext: z.boolean(),
+  confidence: z.number().min(0).max(1), // how confident the classification is
+});
+
 export const ragMiddleware: LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
     const { prompt: messages, providerMetadata } = params;
@@ -44,21 +62,46 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       .map((content) => content.text)
       .join("\n");
 
-    // Classify the user prompt as whether it requires more context or not
+    // Enhanced classification for better query routing
     const { object: classification } = await generateObject({
       // fast model for classification:
       model: google("gemini-2.0-flash"),
-      output: "enum",
-      enum: ["question", "statement", "other"],
-      system: "classify the user message as a question, statement, or other",
+      schema: classificationSchema,
+      system: `Analyze the user message and classify it with the following criteria:
+
+        TYPE CLASSIFICATION:
+        - product-service-inquiry: Asking about products, services, features, availability, specifications, "What do you offer?"
+        - pricing-cost-question: Asking about prices, costs, fees, payment options, discounts, "How much does it cost?"
+        - location-hours-contact: Asking about location, hours, contact info, directions, parking, "Where are you located?"
+        - booking-appointment: Asking about scheduling, booking, availability, reservations, "Can I book an appointment?"
+        - support-help-question: Asking for help, troubleshooting, how-to questions, technical support, "How do I...?"
+        - company-about-info: Asking about company history, team, values, story, experience, "Tell me about your company"
+        - general-inquiry: General questions about the business that need context but don't fit other categories
+        - casual-statement: Casual statements, greetings, or comments that don't need business context
+        - other: Unclear, off-topic, or unrelated to the business
+
+        COMPLEXITY:
+        - simple: Direct, single-concept questions from website visitors
+        - complex: Multi-part questions or questions requiring detailed explanations
+
+        REQUIRES_CONTEXT:
+        - true: Needs information from business documents/website to answer properly
+        - false: Can be answered without additional business context
+
+        CONFIDENCE: Rate 0-1 how confident you are in this classification`,
       prompt: lastUserMessageContent,
     });
 
-    // only use RAG for questions
-    if (classification !== "question") {
+    // Only use RAG for questions that require context
+    if (!classification.requiresContext || classification.type === "other") {
       messages.push(recentMessage);
       return params;
     }
+
+    // Type the classification for better TypeScript support
+    const typedClassification = classification as z.infer<
+      typeof classificationSchema
+    >;
 
     // Use hypothetical document embeddings:
     const { text: hypotheticalAnswer } = await generateText({
@@ -89,7 +132,84 @@ export const ragMiddleware: LanguageModelV1Middleware = {
 
     // rank the chunks by similarity and take the top K
     chunksWithSimilarity.sort((a, b) => b.similarity - a.similarity);
-    const k = 10;
+
+    // Determine optimal K based on classification
+    function getOptimalK(
+      classificationResult: z.infer<typeof classificationSchema>,
+      questionLength: number,
+      selectedFiles: number,
+      availableChunks: number
+    ): number {
+      let baseK = 8;
+
+      // Adjust based on visitor inquiry type
+      switch (classificationResult.type) {
+        case "product-service-inquiry":
+          baseK = 10; // Product questions need comprehensive details and features
+          break;
+        case "pricing-cost-question":
+          baseK = 6; // Pricing questions need focused, specific information
+          break;
+        case "location-hours-contact":
+          baseK = 4; // Contact info questions need minimal, precise details
+          break;
+        case "booking-appointment":
+          baseK = 6; // Booking questions need specific process and availability info
+          break;
+        case "support-help-question":
+          baseK = 8; // Support questions need step-by-step guidance
+          break;
+        case "company-about-info":
+          baseK = 8; // About questions need company story and background
+          break;
+        case "general-inquiry":
+          baseK = 8; // General inquiries get standard context
+          break;
+        default:
+          baseK = 4; // Conservative for casual statements and other types
+      }
+
+      // Adjust for complexity
+      if (classificationResult.complexity === "complex") {
+        baseK += 4;
+      }
+
+      // Adjust for question length (longer questions suggest more context needed)
+      if (questionLength > 100) baseK += 2;
+      if (questionLength > 200) baseK += 2;
+
+      // Adjust for number of selected files
+      if (selectedFiles < 3) {
+        baseK = Math.min(baseK, 6); // Fewer files = less noise tolerance
+      }
+
+      // Cap based on available chunks and confidence
+      const maxK = Math.floor(availableChunks * 0.4); // Don't use more than 40% of available chunks
+      if (classificationResult.confidence < 0.7) {
+        baseK = Math.min(baseK, 6); // Lower confidence = more conservative
+      }
+
+      return Math.min(baseK, maxK, 15); // Hard cap at 15
+    }
+
+    const k = getOptimalK(
+      typedClassification,
+      lastUserMessageContent.length,
+      selection.length,
+      chunksWithSimilarity.length
+    );
+
+    // Debug logging (remove in production if needed)
+    console.log("RAG Classification:", {
+      type: typedClassification.type,
+      complexity: typedClassification.complexity,
+      requiresContext: typedClassification.requiresContext,
+      confidence: typedClassification.confidence,
+      selectedK: k,
+      availableChunks: chunksWithSimilarity.length,
+      questionLength: lastUserMessageContent.length,
+    });
+
     const topKChunks = chunksWithSimilarity.slice(0, k);
 
     // add the chunks to the last user message
@@ -99,7 +219,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
         ...recentMessage.content,
         {
           type: "text",
-          text: "Here is some relevant information that you can use to answer the question:",
+          text: `Here is some relevant information that you can use to answer the question. Respond as if you are the business owner.`,
         },
         ...topKChunks.map((chunk) => ({
           type: "text" as const,
