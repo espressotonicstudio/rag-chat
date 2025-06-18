@@ -28,8 +28,8 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
-            // enableSystem
+            defaultTheme="system"
+            enableSystem
             disableTransitionOnChange
           >
             <Toaster position="top-center" />

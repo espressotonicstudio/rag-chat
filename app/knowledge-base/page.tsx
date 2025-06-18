@@ -6,15 +6,12 @@ import { FilesList } from "@/components/files-list";
 export default async function Page() {
   const session = await auth();
 
-  if (!session?.user?.apiKey) {
-    redirect("/login");
-  }
-
-  const config = await getConfigByApiKey(session?.user?.apiKey);
+  const config = await getConfigByApiKey(session?.user?.apiKey || "");
 
   if (!config) {
     notFound();
   }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-3 h-full">
       <div className="rounded-lg overflow-hidden h-full">
