@@ -65,7 +65,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     // Enhanced classification for better query routing
     const { object: classification } = await generateObject({
       // fast model for classification:
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-2.5-flash-lite-preview-06-17"),
       schema: classificationSchema,
       system: `Analyze the user message and classify it with the following criteria:
 
@@ -93,7 +93,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     });
 
     // Only use RAG for questions that require context
-    if (!classification.requiresContext || classification.type === "other") {
+    if (!classification?.requiresContext || classification?.type === "other") {
       messages.push(recentMessage);
       return params;
     }
@@ -106,7 +106,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     // Use hypothetical document embeddings:
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
-      model: google("gemini-2.5-flash-preview-04-17"),
+      model: google("gemini-2.5-flash"),
       system: "Answer the users question:",
       prompt: lastUserMessageContent,
     });
