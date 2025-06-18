@@ -199,6 +199,84 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       chunksWithSimilarity.length
     );
 
+    // Configure diversity settings based on question type
+    const diversityConfig = {
+      maxChunksPerFile:
+        typedClassification.type === "product-service-inquiry" ? 4 : 3,
+      contentSimilarityThreshold:
+        typedClassification.type === "pricing-cost-question" ? 0.9 : 0.85,
+      preferSpreadAcrossSources: typedClassification.complexity === "complex",
+    };
+
+    // Apply result diversity to prevent redundant chunks
+    const diverseChunks = [];
+    const fileChunkCounts = new Map<string, number>();
+    const selectedChunkEmbeddings: number[][] = [];
+
+    for (const chunk of chunksWithSimilarity) {
+      // 1. Check file-level diversity
+      const currentFileCount = fileChunkCounts.get(chunk.filePath) || 0;
+      if (currentFileCount >= diversityConfig.maxChunksPerFile) {
+        continue;
+      }
+
+      // 2. Check content similarity with already selected chunks
+      const tooSimilarToExisting = selectedChunkEmbeddings.some(
+        (existingEmbedding) =>
+          cosineSimilarity(chunk.embedding, existingEmbedding) >
+          diversityConfig.contentSimilarityThreshold
+      );
+      if (tooSimilarToExisting) {
+        continue;
+      }
+
+      // 3. Add chunk and update counters
+      diverseChunks.push(chunk);
+      selectedChunkEmbeddings.push(chunk.embedding);
+      fileChunkCounts.set(chunk.filePath, currentFileCount + 1);
+
+      // Stop when we have enough diverse chunks
+      if (diverseChunks.length >= k) {
+        break;
+      }
+    }
+
+    // Fallback: if we don't have enough diverse chunks, gradually relax constraints
+    if (diverseChunks.length < Math.floor(k * 0.7)) {
+      console.log(
+        "Insufficient diverse chunks, applying fallback with relaxed constraints"
+      );
+
+      // Reset and try with relaxed file limit
+      diverseChunks.length = 0;
+      fileChunkCounts.clear();
+      selectedChunkEmbeddings.length = 0;
+      const relaxedMaxPerFile = diversityConfig.maxChunksPerFile + 2;
+
+      for (const chunk of chunksWithSimilarity) {
+        const currentFileCount = fileChunkCounts.get(chunk.filePath) || 0;
+        if (currentFileCount >= relaxedMaxPerFile) continue;
+
+        const tooSimilarToExisting = selectedChunkEmbeddings.some(
+          (existingEmbedding) =>
+            cosineSimilarity(chunk.embedding, existingEmbedding) > 0.9
+        );
+        if (tooSimilarToExisting) continue;
+
+        diverseChunks.push(chunk);
+        selectedChunkEmbeddings.push(chunk.embedding);
+        fileChunkCounts.set(chunk.filePath, currentFileCount + 1);
+
+        if (diverseChunks.length >= k) break;
+      }
+    }
+
+    // Final fallback: use top similarity chunks if still insufficient
+    const topKChunks =
+      diverseChunks.length >= Math.floor(k * 0.5)
+        ? diverseChunks
+        : chunksWithSimilarity.slice(0, k);
+
     // Debug logging (remove in production if needed)
     console.log("RAG Classification:", {
       type: typedClassification.type,
@@ -207,10 +285,11 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       confidence: typedClassification.confidence,
       selectedK: k,
       availableChunks: chunksWithSimilarity.length,
+      diverseChunks: diverseChunks.length,
+      usedDiverseResults: topKChunks === diverseChunks,
+      fileDistribution: Object.fromEntries(fileChunkCounts),
       questionLength: lastUserMessageContent.length,
     });
-
-    const topKChunks = chunksWithSimilarity.slice(0, k);
 
     // add the chunks to the last user message
     messages.push({
