@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ADD COLUMN "status" text DEFAULT 'unresolved' NOT NULL;

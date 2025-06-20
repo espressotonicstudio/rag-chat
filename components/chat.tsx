@@ -53,7 +53,7 @@ export function Chat({
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <div className="bg-muted flex flex-row justify-center h-full px-3 py-6">
+    <div className="bg-muted flex flex-row justify-center h-full px-4 py-6">
       <div className="flex flex-col justify-between items-center gap-4 w-full">
         <div
           ref={messagesContainerRef}
@@ -77,38 +77,48 @@ export function Chat({
         {messages.length === 0 &&
           suggestedQuestions &&
           suggestedQuestions.length > 0 && (
-            <div className="grid sm:grid-cols-2 gap-2 w-full px-4 md:px-0 mx-auto md:max-w-[500px]">
-              {suggestedQuestions?.map((suggestedQuestion, index) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05 * index }}
-                  key={index}
-                  className={index > 1 ? "hidden sm:block" : "block"}
-                >
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={async () => {
-                      append({
-                        role: "user",
-                        content: suggestedQuestion.question,
-                      });
-                    }}
+            <div className="flex flex-col gap-1 w-full">
+              <motion.small
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="self-start text-sm text-muted-foreground"
+              >
+                Get started
+              </motion.small>
+              <div className="grid sm:grid-cols-2 gap-2 w-full mx-auto md:max-w-[500px]">
+                {suggestedQuestions?.map((suggestedQuestion, index) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 * index }}
+                    key={index}
+                    className={index > 1 ? "hidden sm:block" : "block"}
                   >
-                    <span className="font-medium">
-                      {suggestedQuestion.question}
-                    </span>
-                  </Button>
-                </motion.div>
-              ))}
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={async () => {
+                        append({
+                          role: "user",
+                          content: suggestedQuestion.question,
+                        });
+                      }}
+                    >
+                      <span className="font-medium">
+                        {suggestedQuestion.question}
+                      </span>
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
 
         {!readonly && (
           <form
             ref={formRef}
-            className="relative flex flex-row gap-2 items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px) px-4 md:px-0"
+            className="relative flex flex-row gap-2 items-center w-full md:max-w-[500px] max-w-[calc(100dvw-32px)"
             onSubmit={handleSubmit}
           >
             <Textarea

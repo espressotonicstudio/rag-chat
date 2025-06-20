@@ -9,10 +9,13 @@ import {
   generateText,
 } from "ai";
 import { z } from "zod";
+import { logger } from "@/lib/axiom/server";
 
 // schema for validating the custom provider metadata
 const selectionSchema = z.object({
-  apiKey: z.string(),
+  apiKey: z.object({
+    value: z.string(),
+  }),
   files: z.object({
     selection: z.array(z.string()),
   }),
@@ -38,12 +41,29 @@ const classificationSchema = z.object({
 
 export const ragMiddleware: LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
+    // Start tracking overall RAG middleware performance
+    const startTime = Date.now();
+    const sessionId = Math.random().toString(36).substring(7);
+
+    logger.info("rag_middleware_start", {
+      session_id: sessionId,
+      timestamp: new Date().toISOString(),
+    });
+
     const { prompt: messages, providerMetadata } = params;
 
     // validate the provider metadata with Zod:
     const { success, data } = selectionSchema.safeParse(providerMetadata);
 
-    if (!success) return params; // no files selected
+    if (!success) {
+      logger.info("rag_middleware_skip", {
+        session_id: sessionId,
+        reason: "no_files_selected",
+        duration_ms: Date.now() - startTime,
+        timestamp: new Date().toISOString(),
+      });
+      return params; // no files selected
+    }
 
     const selection = data.files.selection;
 
@@ -54,6 +74,12 @@ export const ragMiddleware: LanguageModelV1Middleware = {
         messages.push(recentMessage);
       }
 
+      logger.info("rag_middleware_skip", {
+        session_id: sessionId,
+        reason: "no_user_message",
+        duration_ms: Date.now() - startTime,
+        timestamp: new Date().toISOString(),
+      });
       return params;
     }
 
@@ -63,6 +89,13 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       .join("\n");
 
     // Enhanced classification for better query routing
+    const classificationStart = Date.now();
+    logger.info("rag_classification_start", {
+      session_id: sessionId,
+      question: lastUserMessageContent,
+      timestamp: new Date().toISOString(),
+    });
+
     const { object: classification } = await generateObject({
       // fast model for classification:
       model: google("gemini-2.5-flash-lite-preview-06-17"),
@@ -92,8 +125,26 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       prompt: lastUserMessageContent,
     });
 
+    logger.info("rag_classification_complete", {
+      session_id: sessionId,
+      classification_type: classification.type,
+      complexity: classification.complexity,
+      requires_context: classification.requiresContext,
+      confidence: classification.confidence,
+      duration_ms: Date.now() - classificationStart,
+      timestamp: new Date().toISOString(),
+    });
+
     // Only use RAG for questions that require context
     if (!classification?.requiresContext || classification?.type === "other") {
+      logger.info("rag_middleware_skip", {
+        session_id: sessionId,
+        reason: "no_context_required",
+        classification_type: classification.type,
+        requires_context: classification.requiresContext,
+        duration_ms: Date.now() - startTime,
+        timestamp: new Date().toISOString(),
+      });
       messages.push(recentMessage);
       return params;
     }
@@ -104,6 +155,12 @@ export const ragMiddleware: LanguageModelV1Middleware = {
     >;
 
     // Use hypothetical document embeddings:
+    const hydeStart = Date.now();
+    logger.info("rag_hyde_start", {
+      session_id: sessionId,
+      timestamp: new Date().toISOString(),
+    });
+
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
       model: google("gemini-2.5-flash"),
@@ -111,15 +168,42 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       prompt: lastUserMessageContent,
     });
 
+    logger.info("rag_hyde_complete", {
+      session_id: sessionId,
+      hypothetical_answer_length: hypotheticalAnswer.length,
+      duration_ms: Date.now() - hydeStart,
+      timestamp: new Date().toISOString(),
+    });
+
     // Embed the hypothetical answer
+    const embeddingStart = Date.now();
+    logger.info("rag_embedding_start", {
+      session_id: sessionId,
+      timestamp: new Date().toISOString(),
+    });
+
     const { embedding: hypotheticalAnswerEmbedding } = await embed({
       model: google.textEmbeddingModel("text-embedding-004"),
       value: hypotheticalAnswer,
     });
 
+    logger.info("rag_embedding_complete", {
+      session_id: sessionId,
+      embedding_dimensions: hypotheticalAnswerEmbedding.length,
+      duration_ms: Date.now() - embeddingStart,
+      timestamp: new Date().toISOString(),
+    });
+
     // find relevant chunks based on the selection
+    const retrievalStart = Date.now();
+    logger.info("rag_retrieval_start", {
+      session_id: sessionId,
+      selected_files: selection.length,
+      timestamp: new Date().toISOString(),
+    });
+
     const chunksBySelection = await getChunksByFilePaths({
-      filePaths: selection.map((path) => `${data.apiKey}/${path}`),
+      filePaths: selection.map((path) => `${data.apiKey.value}/${path}`),
     });
 
     const chunksWithSimilarity = chunksBySelection.map((chunk) => ({
@@ -130,7 +214,21 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       ),
     }));
 
+    logger.info("rag_retrieval_complete", {
+      session_id: sessionId,
+      chunks_retrieved: chunksBySelection.length,
+      duration_ms: Date.now() - retrievalStart,
+      timestamp: new Date().toISOString(),
+    });
+
     // rank the chunks by similarity and take the top K
+    const similarityStart = Date.now();
+    logger.info("rag_similarity_ranking_start", {
+      session_id: sessionId,
+      chunks_to_rank: chunksWithSimilarity.length,
+      timestamp: new Date().toISOString(),
+    });
+
     chunksWithSimilarity.sort((a, b) => b.similarity - a.similarity);
 
     // Determine optimal K based on classification
@@ -208,12 +306,115 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       preferSpreadAcrossSources: typedClassification.complexity === "complex",
     };
 
+    // Configure quality thresholds based on visitor intent
+    const qualityThresholds: Record<string, number> = {
+      "product-service-inquiry": 0.25, // Broader context for comprehensive answers
+      "pricing-cost-question": 0.35, // Higher precision for specific pricing
+      "location-hours-contact": 0.45, // Very specific information needed
+      "booking-appointment": 0.3, // Specific booking process info
+      "support-help-question": 0.2, // Broader context for troubleshooting
+      "company-about-info": 0.25, // Company story can be broad
+      "general-inquiry": 0.3, // Standard threshold
+      "casual-statement": 0.15, // Very low threshold for casual interactions
+      other: 0.2, // Conservative threshold for unclear questions
+    };
+
+    const baseQualityThreshold =
+      qualityThresholds[typedClassification.type] || 0.25;
+
+    logger.info("rag_similarity_ranking_complete", {
+      session_id: sessionId,
+      duration_ms: Date.now() - similarityStart,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Apply quality thresholds to filter out low-relevance chunks
+    const qualityFilterStart = Date.now();
+    logger.info("rag_quality_filtering_start", {
+      session_id: sessionId,
+      base_threshold: baseQualityThreshold,
+      chunks_before_filtering: chunksWithSimilarity.length,
+      timestamp: new Date().toISOString(),
+    });
+
+    let appliedThreshold = baseQualityThreshold;
+    let qualityChunks = chunksWithSimilarity.filter(
+      (chunk) => chunk.similarity >= appliedThreshold
+    );
+
+    // Progressive threshold relaxation if we don't have enough quality chunks
+    const targetMinChunks = Math.max(3, Math.floor(k * 0.6)); // At least 60% of target K
+
+    if (qualityChunks.length < targetMinChunks && appliedThreshold > 0.15) {
+      logger.info("rag_quality_threshold_relaxation", {
+        session_id: sessionId,
+        original_threshold: baseQualityThreshold,
+        chunks_found: qualityChunks.length,
+        target_min_chunks: targetMinChunks,
+        timestamp: new Date().toISOString(),
+      });
+
+      // First relaxation: reduce threshold by 0.1
+      appliedThreshold = Math.max(0.15, baseQualityThreshold - 0.1);
+      qualityChunks = chunksWithSimilarity.filter(
+        (chunk) => chunk.similarity >= appliedThreshold
+      );
+
+      // Second relaxation if still insufficient
+      if (
+        qualityChunks.length < Math.floor(k * 0.4) &&
+        appliedThreshold > 0.15
+      ) {
+        appliedThreshold = Math.max(0.15, baseQualityThreshold - 0.2);
+        qualityChunks = chunksWithSimilarity.filter(
+          (chunk) => chunk.similarity >= appliedThreshold
+        );
+      }
+    }
+
+    // Calculate quality metrics for logging
+    const similarities = qualityChunks.map((chunk) => chunk.similarity);
+    const avgSimilarity =
+      similarities.length > 0
+        ? similarities.reduce((a, b) => a + b, 0) / similarities.length
+        : 0;
+    const minSimilarity =
+      similarities.length > 0 ? Math.min(...similarities) : 0;
+    const maxSimilarity =
+      similarities.length > 0 ? Math.max(...similarities) : 0;
+
+    logger.info("rag_quality_filtering_complete", {
+      session_id: sessionId,
+      threshold_applied: appliedThreshold,
+      threshold_relaxed: appliedThreshold !== baseQualityThreshold,
+      chunks_before_filtering: chunksWithSimilarity.length,
+      chunks_after_filtering: qualityChunks.length,
+      chunks_filtered_out: chunksWithSimilarity.length - qualityChunks.length,
+      average_similarity: avgSimilarity,
+      min_similarity: minSimilarity,
+      max_similarity: maxSimilarity,
+      duration_ms: Date.now() - qualityFilterStart,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Use quality-filtered chunks for diversity processing
+    const chunksForDiversity = qualityChunks;
+
     // Apply result diversity to prevent redundant chunks
+    const diversityStart = Date.now();
+    logger.info("rag_diversity_start", {
+      session_id: sessionId,
+      target_k: k,
+      diversity_config: diversityConfig,
+      quality_filtered_chunks: chunksForDiversity.length,
+      timestamp: new Date().toISOString(),
+    });
+
     const diverseChunks = [];
     const fileChunkCounts = new Map<string, number>();
     const selectedChunkEmbeddings: number[][] = [];
 
-    for (const chunk of chunksWithSimilarity) {
+    for (const chunk of chunksForDiversity) {
       // 1. Check file-level diversity
       const currentFileCount = fileChunkCounts.get(chunk.filePath) || 0;
       if (currentFileCount >= diversityConfig.maxChunksPerFile) {
@@ -253,7 +454,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       selectedChunkEmbeddings.length = 0;
       const relaxedMaxPerFile = diversityConfig.maxChunksPerFile + 2;
 
-      for (const chunk of chunksWithSimilarity) {
+      for (const chunk of chunksForDiversity) {
         const currentFileCount = fileChunkCounts.get(chunk.filePath) || 0;
         if (currentFileCount >= relaxedMaxPerFile) continue;
 
@@ -271,11 +472,21 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       }
     }
 
-    // Final fallback: use top similarity chunks if still insufficient
+    // Final fallback: use top quality chunks if still insufficient
     const topKChunks =
       diverseChunks.length >= Math.floor(k * 0.5)
         ? diverseChunks
-        : chunksWithSimilarity.slice(0, k);
+        : chunksForDiversity.slice(0, k);
+
+    logger.info("rag_diversity_complete", {
+      session_id: sessionId,
+      diverse_chunks_found: diverseChunks.length,
+      final_chunks_selected: topKChunks.length,
+      used_diversity_results: topKChunks === diverseChunks,
+      file_distribution: Object.fromEntries(fileChunkCounts),
+      duration_ms: Date.now() - diversityStart,
+      timestamp: new Date().toISOString(),
+    });
 
     // Debug logging (remove in production if needed)
     console.log("RAG Classification:", {
@@ -305,6 +516,33 @@ export const ragMiddleware: LanguageModelV1Middleware = {
           text: chunk.content,
         })),
       ],
+    });
+
+    // Log final completion metrics
+    logger.info("rag_middleware_complete", {
+      session_id: sessionId,
+      total_duration_ms: Date.now() - startTime,
+      classification_type: typedClassification.type,
+      classification_confidence: typedClassification.confidence,
+      chunks_selected: topKChunks.length,
+      files_processed: selection.length,
+      chunks_available: chunksWithSimilarity.length,
+      chunks_after_quality_filter: qualityChunks.length,
+      quality_threshold_applied: appliedThreshold,
+      quality_threshold_relaxed: appliedThreshold !== baseQualityThreshold,
+      chunks_filtered_by_quality:
+        chunksWithSimilarity.length - qualityChunks.length,
+      used_diversity: topKChunks === diverseChunks,
+      final_avg_similarity:
+        topKChunks.length > 0
+          ? topKChunks.reduce((acc, chunk) => acc + chunk.similarity, 0) /
+            topKChunks.length
+          : 0,
+      context_tokens_estimated: topKChunks.reduce(
+        (acc, chunk) => acc + chunk.content.length,
+        0
+      ),
+      timestamp: new Date().toISOString(),
     });
 
     return { ...params, prompt: messages };

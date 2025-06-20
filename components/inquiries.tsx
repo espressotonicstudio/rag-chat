@@ -1,12 +1,10 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { InfoIcon, MenuIcon, PencilEditIcon } from "./icons";
-import { useEffect, useState } from "react";
+import { InfoIcon } from "./icons";
+import { Suspense, useEffect, useState } from "react";
 import useSWR from "swr";
-import Link from "next/link";
 import cx from "classnames";
-import { useParams, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Chat } from "@/schema";
 import { fetcher } from "@/utils/functions";
 import {
@@ -19,14 +17,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "./ui/badge";
+import { cn } from "@/lib/utils";
+import InquiryChat from "./inquiry-chat";
 
 export const Inquiries = ({
   apiKey,
 }: {
   apiKey: string | null | undefined;
 }) => {
-  const { id } = useParams();
   const pathname = usePathname();
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   const {
     data: history,
@@ -42,7 +42,11 @@ export const Inquiries = ({
   }, [pathname, mutate]);
 
   return (
-    <div className="size-full p-3 flex flex-col gap-6">
+    <div
+      className={cn("size-full p-3 flex flex-col gap-6", {
+        "grid grid-cols-1 md:grid-cols-[1.5fr_1fr]": selectedChatId,
+      })}
+    >
       <div className="flex flex-col overflow-y-scroll max-w-screen-md w-full mx-auto">
         {error && error.status === 401 ? (
           <div className="text-zinc-500 h-dvh w-full flex flex-row justify-center items-center text-sm gap-2">
@@ -88,26 +92,24 @@ export const Inquiries = ({
                 <TableRow
                   key={chat.id}
                   className={cx("cursor-pointer group hover:bg-muted", {
-                    "bg-muted": id === chat.id,
+                    "bg-muted": selectedChatId === chat.id,
                   })}
+                  onClick={() => setSelectedChatId(chat.id)}
                 >
                   <TableCell className="text-center">
-                    {new Date(chat.createdAt).toLocaleDateString()}
+                    {new Date(chat.createdAt).toLocaleString()}
                   </TableCell>
                   <TableCell>
-                    <Link
-                      href={`/inquiries/${chat.id}`}
-                      className="block w-full h-full text-sm dark:text-zinc-400 dark:group-hover:text-zinc-300 group-hover:text-zinc-700"
-                    >
+                    <div className="block w-full h-full text-sm dark:text-zinc-400 dark:group-hover:text-zinc-300 group-hover:text-zinc-700">
                       {chat.messages[0].content as string}
-                    </Link>
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
                       variant="destructive"
                       className="text-xs"
                     >
-                      Unresolved
+                      {chat.status}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -116,6 +118,8 @@ export const Inquiries = ({
           </Table>
         )}
       </div>
+
+      {selectedChatId && <InquiryChat id={selectedChatId} />}
     </div>
   );
 };

@@ -27,7 +27,7 @@ export const ThinkingMessage = () => {
 
   return (
     <motion.div
-      className={`flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-6 md:first-of-type:pt-20`}
+      className={`flex flex-row gap-4 w-full first-of-type:pt-6 md:first-of-type:pt-20`}
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1, transition: { delay: 0.75 } }}
     >
@@ -61,7 +61,7 @@ export const Message = ({
   return (
     <motion.div
       className={cn(
-        `flex flex-row gap-4 px-4 w-full md:w-[500px] md:px-0 first-of-type:pt-6 md:first-of-type:pt-20`
+        `flex flex-row gap-4 w-full first-of-type:pt-6 md:first-of-type:pt-20`
       )}
       initial={{ y: 5, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -76,7 +76,7 @@ export const Message = ({
           role !== "assistant" && "bg-muted-foreground/15"
         )}
       >
-        <div className="text-zinc-800 dark:text-zinc-300 flex flex-col gap-4">
+        <div className="text-zinc-800 dark:text-zinc-300 flex flex-col gap-4 [overflow-wrap:anywhere]">
           <Markdown>{content as string}</Markdown>
         </div>
       </div>

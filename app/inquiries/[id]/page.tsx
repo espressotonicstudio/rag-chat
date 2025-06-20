@@ -4,6 +4,9 @@ import { Chat } from "@/components/chat";
 import { Message } from "ai";
 import { notFound } from "next/navigation";
 
+/**
+ * @note Not used anymore, but keeping it here for reference
+ */
 export default async function Page({
   params,
 }: {

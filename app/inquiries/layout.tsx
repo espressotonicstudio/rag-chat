@@ -37,7 +37,7 @@ export default async function Layout({
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex-1 p-3 pt-0">{children}</div>
+        <div className="flex-1 p-3 pt-0 overflow-hidden">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

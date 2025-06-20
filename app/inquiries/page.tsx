@@ -12,9 +12,5 @@ export default async function Page() {
     notFound();
   }
 
-  return (
-    <div className="rounded-lg overflow-hidden size-full">
-      <Inquiries apiKey={session?.user?.apiKey} />
-    </div>
-  );
+  return <Inquiries apiKey={session?.user?.apiKey} />;
 }
