@@ -23,7 +23,11 @@ export const chat = pgTable("Chat", {
   createdAt: timestamp("createdAt").notNull(),
   messages: json("messages").notNull(),
   author: varchar("author", { length: 64 }).notNull(),
-  status: text("status").notNull().default("unresolved"),
+  status: text("status", {
+    enum: ["unresolved", "resolved", "pending", "aborted"],
+  })
+    .notNull()
+    .default("pending"),
   apiKey: uuid("apiKey")
     .notNull()
     .references(() => user.apiKey),

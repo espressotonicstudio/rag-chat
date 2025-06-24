@@ -106,7 +106,13 @@ export const Inquiries = ({
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
-                      variant="destructive"
+                      variant={
+                        chat.status === "resolved"
+                          ? "default"
+                          : chat.status === "pending"
+                          ? "secondary"
+                          : "destructive"
+                      }
                       className="text-xs"
                     >
                       {chat.status}

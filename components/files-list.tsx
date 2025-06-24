@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "./ui/button";
+import { FilePreviewDialog } from "./file-preview-dialog";
 
 export const FilesList = ({
   session,
@@ -47,10 +48,14 @@ export const FilesList = ({
   } = useSWR<
     Array<{
       pathname: string;
+      url?: string;
+      downloadUrl?: string;
     }>
   >("/frame/api/files/list", fetcher, {
     fallbackData: [],
   });
+
+  console.log("files", files);
 
   return (
     <div className="h-full">
@@ -234,7 +239,17 @@ export const FilesList = ({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {file.pathname}
+                    <FilePreviewDialog
+                      downloadUrl={file.downloadUrl}
+                      fileName={file.pathname}
+                    >
+                      <button
+                        className="text-left hover:underline focus:outline-none focus:underline cursor-pointer"
+                        type="button"
+                      >
+                        {file.pathname}
+                      </button>
+                    </FilePreviewDialog>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
