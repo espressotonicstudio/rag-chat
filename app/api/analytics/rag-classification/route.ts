@@ -56,23 +56,69 @@ export async function GET(request: NextRequest) {
         axiomQueryClient.query(complexityQuery),
       ]);
 
+    // Helper function to extract aggregation value by operation name
+    const getAggregationValue = (
+      aggregations: any[],
+      opName: string
+    ): number => {
+      const agg = aggregations?.find((a: any) => a.op === opName);
+      return agg?.value || 0;
+    };
+
+    // Extract data from buckets.totals instead of matches
+    const classificationData =
+      classificationResult.buckets?.totals?.map((bucket: any) => ({
+        classification_type: bucket.group?.classification_type || "unknown",
+        count: getAggregationValue(bucket.aggregations, "count"),
+        avg_confidence: getAggregationValue(
+          bucket.aggregations,
+          "avg_confidence"
+        ),
+        high_confidence_count: getAggregationValue(
+          bucket.aggregations,
+          "high_confidence_count"
+        ),
+      })) || [];
+
+    const skipReasonData =
+      skipReasonResult.buckets?.totals?.map((bucket: any) => ({
+        reason: bucket.group?.reason || "unknown",
+        count: getAggregationValue(bucket.aggregations, "count"),
+      })) || [];
+
+    const complexityData =
+      complexityResult.buckets?.totals?.map((bucket: any) => ({
+        complexity: bucket.group?.complexity || "unknown",
+        count: getAggregationValue(bucket.aggregations, "count"),
+      })) || [];
+
+    // Calculate total queries from classification data
+    const totalQueries = classificationData.reduce(
+      (sum, item) => sum + item.count,
+      0
+    );
+
     return NextResponse.json({
       success: true,
       data: {
         timeRange: `${hours} hours`,
-        classification: classificationResult.matches || [],
-        skipReasons: skipReasonResult.matches || [],
-        complexity: complexityResult.matches || [],
-        totalQueries: (classificationResult.matches || []).reduce(
-          (sum: number, item: any) => sum + item.count,
-          0
-        ),
+        classification: classificationData,
+        skipReasons: skipReasonData,
+        complexity: complexityData,
+        totalQueries: totalQueries,
       },
       metadata: {
         classificationTotal: classificationResult.status?.rowsExamined || 0,
         skipReasonsTotal: skipReasonResult.status?.rowsExamined || 0,
         complexityTotal: complexityResult.status?.rowsExamined || 0,
         dataset: dataset,
+        // Add debug info to understand the structure
+        bucketStructure: {
+          classificationBuckets:
+            classificationResult.buckets?.totals?.length || 0,
+          skipReasonBuckets: skipReasonResult.buckets?.totals?.length || 0,
+          complexityBuckets: complexityResult.buckets?.totals?.length || 0,
+        },
       },
     });
   } catch (error) {

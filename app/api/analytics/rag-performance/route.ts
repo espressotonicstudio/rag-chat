@@ -5,7 +5,7 @@ import { auth } from "@/app/(auth)/auth";
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.apiKey) {
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
           message == "rag_quality_filtering_complete", "quality_filtering",
           message == "rag_diversity_complete", "diversity",
           "unknown"
-        ), duration_ms = ['fields.duration_ms'], _time
+        ), ['fields.duration_ms'], _time
       | summarize
-          avg_duration = avg(duration_ms),
-          p95_duration = percentile(duration_ms, 95),
+          avg_duration = avg(['fields.duration_ms']),
+          p95_duration = percentile(['fields.duration_ms'], 95),
           count = count()
         by step
       | order by avg_duration desc
@@ -69,19 +69,61 @@ export async function GET(request: NextRequest) {
         axiomQueryClient.query(successRateQuery),
       ]);
 
+    // Helper function to extract aggregation value by operation name
+    const getAggregationValue = (
+      aggregations: any[],
+      opName: string
+    ): number => {
+      const agg = aggregations?.find((a: any) => a.op === opName);
+      return agg?.value || 0;
+    };
+
+    // Extract data from buckets.totals instead of matches
+    const performanceData =
+      performanceResult.buckets?.totals?.map((bucket: any) => ({
+        avg_duration: getAggregationValue(bucket.aggregations, "avg_duration"),
+        p50_duration: getAggregationValue(bucket.aggregations, "p50_duration"),
+        p95_duration: getAggregationValue(bucket.aggregations, "p95_duration"),
+        p99_duration: getAggregationValue(bucket.aggregations, "p99_duration"),
+        total_requests: getAggregationValue(
+          bucket.aggregations,
+          "total_requests"
+        ),
+      })) || [];
+
+    const stepTimingData =
+      stepTimingResult.buckets?.totals?.map((bucket: any) => ({
+        step: bucket.group?.step || "unknown",
+        avg_duration: getAggregationValue(bucket.aggregations, "avg_duration"),
+        p95_duration: getAggregationValue(bucket.aggregations, "p95_duration"),
+        count: getAggregationValue(bucket.aggregations, "count"),
+      })) || [];
+
+    const successRateData =
+      successRateResult.buckets?.totals?.map((bucket: any) => ({
+        success: bucket.group?.success || "unknown",
+        count: getAggregationValue(bucket.aggregations, "count"),
+      })) || [];
+
     return NextResponse.json({
       success: true,
       data: {
         timeRange: `${hours} hours`,
-        performance: performanceResult.matches || [],
-        stepTiming: stepTimingResult.matches || [],
-        successRate: successRateResult.matches || [],
+        performance: performanceData,
+        stepTiming: stepTimingData,
+        successRate: successRateData,
       },
       metadata: {
         performanceTotal: performanceResult.status?.rowsExamined || 0,
         stepTimingTotal: stepTimingResult.status?.rowsExamined || 0,
         successRateTotal: successRateResult.status?.rowsExamined || 0,
         dataset: dataset,
+        // Add debug info to understand the structure
+        bucketStructure: {
+          performanceBuckets: performanceResult.buckets?.totals?.length || 0,
+          stepTimingBuckets: stepTimingResult.buckets?.totals?.length || 0,
+          successRateBuckets: successRateResult.buckets?.totals?.length || 0,
+        },
       },
     });
   } catch (error) {
