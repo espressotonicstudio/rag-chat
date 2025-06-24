@@ -5,6 +5,7 @@ import {
   AudioWaveform,
   BookOpen,
   Bot,
+  ChartColumn,
   Command,
   Frame,
   GalleryVerticalEnd,
@@ -28,23 +29,6 @@ import {
 import { ModeToggle } from "@/components/ui/theme-toggle";
 
 const data = {
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
       title: "Knowledge Base",
@@ -62,29 +46,11 @@ const data = {
       title: "Inquiries",
       url: "/inquiries",
       icon: Bot,
-      items: [
-        {
-          title: "Unresolved",
-          url: "/inquiries?status=unresolved",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
     },
     {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      title: "Analytics",
+      url: "/analytics",
+      icon: ChartColumn,
     },
   ],
 };
@@ -100,10 +66,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        {/* <TeamSwitcher teams={data.teams} /> */}
         <ModeToggle />
       </SidebarFooter>
       <SidebarRail />
