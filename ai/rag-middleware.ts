@@ -12,6 +12,7 @@ import { z } from "zod";
 import { logger } from "@/lib/axiom/server";
 import { randomUUID } from "crypto";
 import { HybridSearch } from "./hybrid-search";
+import { geminiReranker } from "./gemini-reranker";
 
 // schema for validating the custom provider metadata
 const selectionSchema = z.object({
@@ -688,24 +689,62 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       questionLength: lastUserMessageContent.length,
     });
 
-    // add the chunks to the last user message
-    messages.push({
-      role: "user",
-      content: [
-        ...recentMessage.content,
-        {
-          type: "text",
-          text: `Here is some relevant information that you can use to answer the question. Respond as if you are the business owner.`,
-        },
-        ...topKChunks.map((chunk) => ({
-          type: "text" as const,
-          text: chunk.content,
-        })),
-      ],
+    // Gemini Reranking Integration
+    const rerankingStart = Date.now();
+    logger.info("rag_reranking_start", {
+      session_id: sessionId,
+      candidate_count: topKChunks.length,
+      query_length: lastUserMessageContent.length,
+      timestamp: new Date().toISOString(),
     });
 
-    // Log final completion metrics
-    logger.info("rag_middleware_complete", {
+    // Convert topKChunks to format expected by reranker
+    const candidatesForReranking = topKChunks.map((chunk) => ({
+      content: chunk.content,
+      score: chunk.similarity,
+      metadata: {
+        id: chunk.id,
+        filePath: chunk.filePath,
+        source: chunk.source,
+      },
+    }));
+
+    const { rerankedDocuments, metrics: rerankingMetrics } =
+      await geminiReranker.quickRerank(
+        lastUserMessageContent,
+        candidatesForReranking,
+        Math.min(8, topKChunks.length) // Limit to top 8 for reranking
+      );
+
+    // Convert back to original format
+    const rerankedChunks = rerankedDocuments.map((doc) => ({
+      id: doc.metadata.id,
+      content: doc.content,
+      filePath: doc.metadata.filePath,
+      similarity: doc.score, // Use reranked score
+      source: doc.metadata.source,
+      reranked: true,
+      originalIndex: doc.originalIndex,
+    }));
+
+    logger.info("rag_reranking_complete", {
+      session_id: sessionId,
+      reranked_count: rerankedChunks.length,
+      score_improvement:
+        rerankedChunks.length > 0
+          ? rerankedChunks[0].similarity - (topKChunks[0]?.similarity || 0)
+          : 0,
+      ...rerankingMetrics,
+      duration_ms: Date.now() - rerankingStart,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Use reranked results as final chunks
+    const finalTopKChunks =
+      rerankedChunks.length > 0 ? rerankedChunks : topKChunks;
+
+    // Enhanced logging with reranking metrics
+    console.log("rag_middleware_complete", {
       session_id: sessionId,
       total_duration_ms: Date.now() - startTime,
       classification_type: typedClassification.type,
@@ -755,11 +794,28 @@ export const ragMiddleware: LanguageModelV1Middleware = {
               ) / topKChunks.length
             : 0,
       },
+      reranking_metrics: rerankingMetrics,
       context_tokens_estimated: topKChunks.reduce(
         (acc, chunk) => acc + chunk.content.length,
         0
       ),
       timestamp: new Date().toISOString(),
+    });
+
+    // add the chunks to the last user message
+    messages.push({
+      role: "user",
+      content: [
+        ...recentMessage.content,
+        {
+          type: "text",
+          text: `Here is some relevant information that you can use to answer the question. Respond as if you are the business owner.`,
+        },
+        ...finalTopKChunks.map((chunk: any) => ({
+          type: "text" as const,
+          text: chunk.content,
+        })),
+      ],
     });
 
     return { ...params, prompt: messages };
