@@ -15,15 +15,17 @@ const thinkingPhrases = [
 ];
 
 export const ThinkingMessage = () => {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(
+    Math.floor(Math.random() * thinkingPhrases.length)
+  );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((index) => (index + 1) % thinkingPhrases.length);
-    }, 2700);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setIndex((index) => (index + 1) % thinkingPhrases.length);
+  //   }, 2700);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <motion.div

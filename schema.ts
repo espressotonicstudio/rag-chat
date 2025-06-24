@@ -1,5 +1,4 @@
 import { Message } from "ai";
-import { randomUUID } from "crypto";
 import { InferSelectModel } from "drizzle-orm";
 import {
   pgTable,
@@ -9,6 +8,7 @@ import {
   timestamp,
   json,
   uuid,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("User", {
@@ -31,6 +31,8 @@ export const chat = pgTable("Chat", {
   apiKey: uuid("apiKey")
     .notNull()
     .references(() => user.apiKey),
+  feedbackQuality: boolean("feedbackQuality"),
+  feedbackReason: text("feedbackReason"),
 });
 
 export const chunk = pgTable("Chunk", {

@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 import { logger } from "@/lib/axiom/server";
 import { randomUUID } from "crypto";
+import { HybridSearch } from "./hybrid-search";
 
 // schema for validating the custom provider metadata
 const selectionSchema = z.object({
@@ -210,17 +211,150 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       filePaths: selection.map((path) => `${data.apiKey.value}/${path}`),
     });
 
-    const chunksWithSimilarity = chunksBySelection.map((chunk) => ({
-      ...chunk,
+    // First, calculate semantic similarities using HyDE embeddings
+    const semanticStart = Date.now();
+    logger.info("rag_semantic_search_start", {
+      session_id: sessionId,
+      chunks_to_process: chunksBySelection.length,
+      timestamp: new Date().toISOString(),
+    });
+
+    const semanticResults = chunksBySelection.map((chunk) => ({
+      chunk,
       similarity: cosineSimilarity(
         hypotheticalAnswerEmbedding,
         chunk.embedding
       ),
+      rank: 0, // Will be set after sorting
+    }));
+
+    // Sort by similarity and assign ranks
+    semanticResults.sort((a, b) => b.similarity - a.similarity);
+    semanticResults.forEach((result, index) => {
+      result.rank = index + 1;
+    });
+
+    // Log semantic search results
+    const semanticScores = semanticResults.map((r) => r.similarity);
+    const topSemanticChunks = semanticResults.slice(0, 10);
+
+    logger.info("rag_semantic_search_complete", {
+      session_id: sessionId,
+      semantic_results_count: semanticResults.length,
+      avg_semantic_score:
+        semanticScores.reduce((a, b) => a + b, 0) / semanticScores.length,
+      min_semantic_score: Math.min(...semanticScores),
+      max_semantic_score: Math.max(...semanticScores),
+      top_10_semantic_scores: topSemanticChunks.map((r) => ({
+        score: r.similarity,
+        content_preview: r.chunk.content.substring(0, 100),
+        file_path: r.chunk.filePath,
+      })),
+      duration_ms: Date.now() - semanticStart,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Initialize hybrid search with adaptive configuration
+    const hybridStart = Date.now();
+    const optimalAlpha = getOptimalAlpha(
+      typedClassification,
+      lastUserMessageContent
+    );
+
+    logger.info("rag_hybrid_search_start", {
+      session_id: sessionId,
+      query_type: typedClassification.type,
+      query_complexity: typedClassification.complexity,
+      optimal_alpha: optimalAlpha,
+      query_preview: lastUserMessageContent.substring(0, 200),
+      timestamp: new Date().toISOString(),
+    });
+
+    const hybridSearchConfig = {
+      alpha: optimalAlpha,
+      topK: Math.min(chunksBySelection.length, 50),
+      semanticThreshold: 0.1,
+      bm25Threshold: 0.0,
+      enableAdaptiveWeighting: true,
+    };
+
+    const hybridSearch = new HybridSearch(hybridSearchConfig);
+
+    // Get debug info about the hybrid search configuration
+    const hybridDebugInfo = hybridSearch.getDebugInfo(
+      lastUserMessageContent,
+      chunksBySelection
+    );
+
+    logger.info("rag_hybrid_search_config", {
+      session_id: sessionId,
+      config: hybridSearchConfig,
+      query_analysis: hybridDebugInfo.query,
+      bm25_debug: hybridDebugInfo.bm25Debug,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Perform hybrid search combining semantic and BM25 results
+    const hybridResults = hybridSearch.search(
+      lastUserMessageContent,
+      chunksBySelection,
+      semanticResults
+    );
+
+    // Log detailed hybrid search results
+    const hybridScores = hybridResults.map((r) => r.hybridScore);
+    const sourceDistribution = {
+      semantic: hybridResults.filter((r) => r.source === "semantic").length,
+      bm25: hybridResults.filter((r) => r.source === "bm25").length,
+      both: hybridResults.filter((r) => r.source === "both").length,
+    };
+
+    logger.info("rag_hybrid_search_complete", {
+      session_id: sessionId,
+      hybrid_results_count: hybridResults.length,
+      source_distribution: sourceDistribution,
+      avg_hybrid_score:
+        hybridScores.length > 0
+          ? hybridScores.reduce((a, b) => a + b, 0) / hybridScores.length
+          : 0,
+      min_hybrid_score: hybridScores.length > 0 ? Math.min(...hybridScores) : 0,
+      max_hybrid_score: hybridScores.length > 0 ? Math.max(...hybridScores) : 0,
+      top_5_hybrid_results: hybridResults.slice(0, 5).map((r) => ({
+        rank: r.rank,
+        hybrid_score: r.hybridScore,
+        semantic_score: r.semanticScore,
+        bm25_score: r.bm25Score,
+        source: r.source,
+        content_preview: r.chunk.content.substring(0, 100),
+        file_path: r.chunk.filePath,
+      })),
+      alpha_used: optimalAlpha,
+      semantic_weight_percent: Math.round(optimalAlpha * 100),
+      bm25_weight_percent: Math.round((1 - optimalAlpha) * 100),
+      duration_ms: Date.now() - hybridStart,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Convert hybrid results back to the expected format with similarity scores
+    const chunksWithSimilarity = hybridResults.map((result) => ({
+      ...result.chunk,
+      similarity: result.hybridScore, // Use hybrid score as similarity
+      hybridScore: result.hybridScore,
+      semanticScore: result.semanticScore,
+      bm25Score: result.bm25Score,
+      source: result.source,
     }));
 
     logger.info("rag_retrieval_complete", {
       session_id: sessionId,
       chunks_retrieved: chunksBySelection.length,
+      hybrid_results_count: hybridResults.length,
+      hybrid_alpha: hybridSearchConfig.alpha,
+      sources_distribution: {
+        semantic: hybridResults.filter((r) => r.source === "semantic").length,
+        bm25: hybridResults.filter((r) => r.source === "bm25").length,
+        both: hybridResults.filter((r) => r.source === "both").length,
+      },
       duration_ms: Date.now() - retrievalStart,
       timestamp: new Date().toISOString(),
     });
@@ -292,6 +426,54 @@ export const ragMiddleware: LanguageModelV1Middleware = {
       }
 
       return Math.min(baseK, maxK, 15); // Hard cap at 15
+    }
+
+    // Determine optimal alpha (semantic vs keyword weighting) based on classification
+    function getOptimalAlpha(
+      classificationResult: z.infer<typeof classificationSchema>,
+      query: string
+    ): number {
+      let baseAlpha = 0.7; // Default: 70% semantic, 30% keyword
+
+      // Adjust based on query type
+      switch (classificationResult.type) {
+        case "product-service-inquiry":
+          baseAlpha = 0.8; // Favor semantic for conceptual product questions
+          break;
+        case "pricing-cost-question":
+          baseAlpha = 0.4; // Favor keyword for specific pricing terms
+          break;
+        case "location-hours-contact":
+          baseAlpha = 0.3; // Strongly favor keyword for exact contact info
+          break;
+        case "booking-appointment":
+          baseAlpha = 0.5; // Balanced for booking-related terms
+          break;
+        case "support-help-question":
+          baseAlpha = 0.6; // Slightly favor semantic for broader support context
+          break;
+        case "company-about-info":
+          baseAlpha = 0.8; // Favor semantic for company story and values
+          break;
+        default:
+          baseAlpha = 0.7; // Default balanced approach
+      }
+
+      // Adjust for query characteristics
+      const hasSpecificTerms =
+        /\b(price|cost|\$|phone|email|address|hours|schedule|appointment)\b/i.test(
+          query
+        );
+      if (hasSpecificTerms) {
+        baseAlpha -= 0.2; // Favor keyword for specific terms
+      }
+
+      const hasQuotedTerms = /["'].*["']/.test(query);
+      if (hasQuotedTerms) {
+        baseAlpha -= 0.3; // Strongly favor keyword for quoted exact matches
+      }
+
+      return Math.max(0.1, Math.min(0.9, baseAlpha));
     }
 
     const k = getOptimalK(
@@ -542,6 +724,37 @@ export const ragMiddleware: LanguageModelV1Middleware = {
           ? topKChunks.reduce((acc, chunk) => acc + chunk.similarity, 0) /
             topKChunks.length
           : 0,
+      hybrid_search_metrics: {
+        alpha_used: optimalAlpha,
+        semantic_weight_percent: Math.round(optimalAlpha * 100),
+        bm25_weight_percent: Math.round((1 - optimalAlpha) * 100),
+        final_sources_distribution: {
+          semantic: topKChunks.filter((c) => c.source === "semantic").length,
+          bm25: topKChunks.filter((c) => c.source === "bm25").length,
+          both: topKChunks.filter((c) => c.source === "both").length,
+        },
+        avg_hybrid_score:
+          topKChunks.length > 0
+            ? topKChunks.reduce(
+                (acc, chunk) => acc + (chunk.hybridScore || 0),
+                0
+              ) / topKChunks.length
+            : 0,
+        avg_semantic_score:
+          topKChunks.length > 0
+            ? topKChunks.reduce(
+                (acc, chunk) => acc + (chunk.semanticScore || 0),
+                0
+              ) / topKChunks.length
+            : 0,
+        avg_bm25_score:
+          topKChunks.length > 0
+            ? topKChunks.reduce(
+                (acc, chunk) => acc + (chunk.bm25Score || 0),
+                0
+              ) / topKChunks.length
+            : 0,
+      },
       context_tokens_estimated: topKChunks.reduce(
         (acc, chunk) => acc + chunk.content.length,
         0
