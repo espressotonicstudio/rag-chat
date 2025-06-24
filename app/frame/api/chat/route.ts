@@ -30,16 +30,11 @@ export async function POST(request: Request) {
       // const immediateResult = streamText({
       //   model: google("gemini-2.5-flash-lite-preview-06-17"),
       //   system: `
-      //   you are a helpful assistant that can answer questions about the business
-      //   Respond to the user in creative, and friendly, but short way that you are analyzing the user's request.
-      //   Do not ask for clarification.
+      //   You are current processing the user's request but that will take a few seconds.
+      //   Let the user know that you are analyzing their request. Make it sound creative and friendly.
+      //   Do not ask for clarification or attempt to answer the question.
 
-      //   Examples but not limited to:
-      //   - "Analyzing your request..."\n
-      //   - "Finding the best answer..."\n
-      //   - "Gathering information..."\n
-
-      //   always add a blank line after your response. Do not add any other text.
+      //   End this response with a blank line.
       //   `,
       //   prompt: lastUserMessageContent,
       // });

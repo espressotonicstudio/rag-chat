@@ -1,6 +1,15 @@
-# Internal Knowledge Base Preview
+# RAG Chat with Analytics
 
-This template demonstrates the usage of the [Language Model Middleware](https://sdk.vercel.ai/docs/ai-sdk-core/middleware#language-model-middleware) to perform retrieval augmented generation and enforce guardrails using the [AI SDK](https://sdk.vercel.ai/docs) and [Next.js](https://nextjs.org/).
+This application demonstrates advanced retrieval augmented generation (RAG) with comprehensive analytics and observability. Built using the [Language Model Middleware](https://sdk.vercel.ai/docs/ai-sdk-core/middleware#language-model-middleware), [AI SDK](https://sdk.vercel.ai/docs), [Next.js](https://nextjs.org/), and [Axiom](https://axiom.co/) for logging and analytics.
+
+## Features
+
+- 🤖 **Advanced RAG Pipeline**: Multi-step retrieval with classification, HyDE, embeddings, similarity ranking, quality filtering, and diversity
+- 📊 **Real-time Analytics**: Comprehensive dashboard showing RAG performance, classification metrics, and usage patterns
+- 🔍 **Query Intelligence**: Automatic query classification and complexity analysis
+- 📈 **Performance Monitoring**: Step-by-step timing analysis and bottleneck identification
+- 🛡️ **Quality Assurance**: Built-in quality filtering and confidence scoring
+- 🎯 **Smart Routing**: Context-aware query routing and skip logic
 
 ## Deploy your own
 
@@ -26,10 +35,24 @@ To run the example locally you need to:
 
 1. Sign up for accounts with the AI providers you want to use (e.g., OpenAI, Anthropic).
 2. Obtain API keys for each provider.
-3. Set the required environment variables as shown in the `.env.example` file, but in a new file called `.env`.
-4. `npm install` to install the required dependencies.
-5. `npm run dev` to launch the development server.
+3. Set up Axiom for analytics (see [AXIOM_SETUP.md](./AXIOM_SETUP.md) for detailed instructions).
+4. Set the required environment variables as shown in the `.env.example` file, but in a new file called `.env`.
+5. `npm install` to install the required dependencies.
+6. `npm run dev` to launch the development server.
 
+## Analytics Dashboard
+
+Once you have Axiom set up and users start chatting, you can access the analytics dashboard at:
+
+- **Classification Analytics**: `/analytics` - View query classification distribution, complexity analysis, and skip reasons
+- **Performance Analytics**: Available via API at `/api/analytics/rag-performance` - Monitor step-by-step timing and bottlenecks
+
+### Key Metrics Tracked
+
+- **Query Classification**: Direct answers, RAG-enhanced, context-dependent, and ambiguous queries
+- **Performance Timing**: End-to-end pipeline performance and individual step breakdowns
+- **Quality Metrics**: Confidence scores, context requirements, and filtering effectiveness
+- **Usage Patterns**: Skip reasons, complexity distribution, and success rates
 
 ## Learn More
 

@@ -95,13 +95,68 @@ import {
 import { WebVitals } from "@/lib/axiom/client";
 ```
 
+## RAG Analytics Features
+
+### Analytics Dashboard (`/analytics`)
+
+The application includes a comprehensive analytics dashboard that provides insights into:
+
+#### Classification Analytics
+
+- **Query Distribution**: Breakdown of query types (direct_answer, rag_enhanced, context_dependent, ambiguous)
+- **Complexity Analysis**: Distribution of query complexity levels (simple, moderate, complex)
+- **Confidence Metrics**: Average confidence scores and high-confidence query counts
+- **Skip Reasons**: Understanding when and why RAG is bypassed
+
+#### Performance Analytics (API: `/api/analytics/rag-performance`)
+
+- **Pipeline Performance**: End-to-end timing with percentiles (P50, P95, P99)
+- **Step-by-Step Breakdown**: Individual timing for each RAG step:
+  - Classification
+  - HyDE (Hypothetical Document Embeddings)
+  - Embedding generation
+  - Retrieval
+  - Similarity ranking
+  - Quality filtering
+  - Diversity enhancement
+- **Success Rates**: RAG completion vs. skip rates
+
+### Logged Events
+
+The RAG middleware automatically logs the following events to Axiom:
+
+1. **`rag_middleware_skip`** - When RAG is bypassed
+
+   - `reason`: Why RAG was skipped
+   - `query`: The original query
+   - `classification_type`: Query classification
+
+2. **`rag_classification_complete`** - Query classification results
+
+   - `classification_type`: Type of query
+   - `complexity`: Query complexity level
+   - `confidence`: Classification confidence score
+   - `requires_context`: Whether context is needed
+   - `duration_ms`: Classification timing
+
+3. **`rag_[step]_complete`** - Individual step completions
+
+   - `duration_ms`: Step execution time
+   - Step-specific metadata
+
+4. **`rag_middleware_complete`** - Full pipeline completion
+   - `total_duration_ms`: End-to-end timing
+   - `steps_completed`: Number of steps executed
+   - `final_confidence`: Overall confidence score
+
 ## Key Benefits for RAG Chat App
 
-1. **Chat Analytics**: Track user interactions with the chat system
-2. **Performance Monitoring**: Monitor API response times and error rates
-3. **User Engagement**: Understand how users interact with the knowledge base
-4. **Error Tracking**: Quickly identify and debug issues
-5. **Usage Patterns**: Analyze popular queries and topics
+1. **RAG Performance Optimization**: Identify bottlenecks in the retrieval pipeline
+2. **Query Intelligence**: Understand query patterns and classification accuracy
+3. **Quality Monitoring**: Track confidence scores and filtering effectiveness
+4. **User Experience**: Monitor response times and success rates
+5. **Cost Optimization**: Analyze when RAG is skipped vs. utilized
+6. **Debugging**: Detailed step-by-step execution logs for troubleshooting
 
 ## Privacy & Compliance
 
@@ -115,5 +170,27 @@ import { WebVitals } from "@/lib/axiom/client";
 1. Install dependencies: `pnpm install` ✓
 2. Set up environment variables in `.env.local`
 3. Deploy and test the integration
-4. Create Axiom dashboards for monitoring
-5. Set up alerts for key metrics
+4. Start chatting to generate analytics data
+5. Visit `/analytics` to view the dashboard
+6. Create custom Axiom dashboards for additional monitoring
+7. Set up alerts for key metrics (response time, error rates, etc.)
+
+## Analytics API Endpoints
+
+### Classification Analytics
+
+```
+GET /api/analytics/rag-classification?hours=24
+```
+
+Returns query classification distribution, complexity analysis, and skip reasons.
+
+### Performance Analytics
+
+```
+GET /api/analytics/rag-performance?hours=24
+```
+
+Returns pipeline performance metrics, step timing, and success rates.
+
+Both endpoints support the `hours` parameter to specify the time range (default: 24 hours).
