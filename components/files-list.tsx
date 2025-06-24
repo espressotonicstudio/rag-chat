@@ -55,8 +55,6 @@ export const FilesList = ({
     fallbackData: [],
   });
 
-  console.log("files", files);
-
   return (
     <div className="h-full">
       <div className={cx("p-4 flex flex-col gap-4 max-w-screen-md mx-auto")}>

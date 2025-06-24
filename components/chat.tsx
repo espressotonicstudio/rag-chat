@@ -146,7 +146,7 @@ export function Chat({
               size="icon"
               type="submit"
               variant="outline"
-              className="absolute bottom-2 right-6"
+              className="absolute bottom-2 right-2"
             >
               <ArrowUpIcon />
             </Button>
