@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SessionProvider } from "next-auth/react";
 import { WebVitals } from "@/lib/axiom/client";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -33,7 +34,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <Toaster position="top-center" />
-            {children}
+            <NuqsAdapter>{children}</NuqsAdapter>
           </ThemeProvider>
         </SessionProvider>
         <WebVitals />

@@ -10,9 +10,13 @@ import {
 } from "ai";
 import { z } from "zod";
 import { logger } from "@/lib/axiom/server";
+import { randomUUID } from "crypto";
 
 // schema for validating the custom provider metadata
 const selectionSchema = z.object({
+  chatId: z.object({
+    value: z.string(),
+  }),
   apiKey: z.object({
     value: z.string(),
   }),
@@ -41,19 +45,19 @@ const classificationSchema = z.object({
 
 export const ragMiddleware: LanguageModelV1Middleware = {
   transformParams: async ({ params }) => {
+    const { prompt: messages, providerMetadata } = params;
+
+    // validate the provider metadata with Zod:
+    const { success, data } = selectionSchema.safeParse(providerMetadata);
+
     // Start tracking overall RAG middleware performance
     const startTime = Date.now();
-    const sessionId = Math.random().toString(36).substring(7);
+    const sessionId = data?.chatId.value ?? randomUUID();
 
     logger.info("rag_middleware_start", {
       session_id: sessionId,
       timestamp: new Date().toISOString(),
     });
-
-    const { prompt: messages, providerMetadata } = params;
-
-    // validate the provider metadata with Zod:
-    const { success, data } = selectionSchema.safeParse(providerMetadata);
 
     if (!success) {
       logger.info("rag_middleware_skip", {

@@ -13,7 +13,7 @@ export default async function Page() {
   }
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6">
       <p className="text-muted-foreground">
         Monitor your RAG system performance and user behavior patterns
       </p>

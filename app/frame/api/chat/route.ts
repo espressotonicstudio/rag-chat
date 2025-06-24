@@ -51,6 +51,9 @@ export async function POST(request: Request) {
         `,
         messages,
         providerOptions: {
+          chatId: {
+            value: id,
+          },
           apiKey: {
             value: apiKey,
           },
