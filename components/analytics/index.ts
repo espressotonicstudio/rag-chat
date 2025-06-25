@@ -7,3 +7,4 @@ export { RagSkipAnalysisCard } from "./rag-skip-analysis-card";
 export { QuestionComplexityCard } from "./question-complexity-card";
 export { ResponseTimeDistributionCard } from "./response-time-distribution-card";
 export { ProcessingStepTimingCard } from "./processing-step-timing-card";
+export { SuggestedQuestionsCard } from "./suggested-questions-card";

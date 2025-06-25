@@ -19,6 +19,7 @@ import {
   QuestionComplexityCard,
   ResponseTimeDistributionCard,
   ProcessingStepTimingCard,
+  SuggestedQuestionsCard,
 } from "@/components/analytics";
 
 // API Response interfaces to match the actual API structure
@@ -69,6 +70,29 @@ interface PerformanceData {
   timeRange: string;
 }
 
+interface SuggestedQuestionsData {
+  totalClicks: number;
+  clicksByQuestion: Array<{
+    question_id: string;
+    question_text: string;
+    click_count: number;
+  }>;
+  contextBreakdown: Array<{
+    context: string;
+    click_count: number;
+  }>;
+  dailyTrends: Array<{
+    date: string;
+    click_count: number;
+  }>;
+  topQuestions: Array<{
+    question_id: string;
+    question_text: string;
+    click_count: number;
+  }>;
+  timeRange: string;
+}
+
 export function RagAnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState(24);
 
@@ -93,16 +117,29 @@ export function RagAnalyticsDashboard() {
     fetcher
   );
 
+  const {
+    data: suggestedQuestionsResponse,
+    error: suggestedQuestionsError,
+    isLoading: suggestedQuestionsLoading,
+    mutate: mutateSuggestedQuestions,
+  } = useSWR<ApiResponse<SuggestedQuestionsData>>(
+    `/api/analytics/suggested-questions?hours=${timeRange}`,
+    fetcher
+  );
+
   // Extract data from API responses
   const analyticsData = analyticsResponse?.data;
   const performanceData = performanceResponse?.data;
+  const suggestedQuestionsData = suggestedQuestionsResponse?.data;
 
-  const loading = analyticsLoading || performanceLoading;
-  const error = analyticsError || performanceError;
+  const loading =
+    analyticsLoading || performanceLoading || suggestedQuestionsLoading;
+  const error = analyticsError || performanceError || suggestedQuestionsError;
 
   const refreshData = () => {
     mutateAnalytics();
     mutatePerformance();
+    mutateSuggestedQuestions();
   };
 
   if (loading) {
@@ -209,6 +246,7 @@ export function RagAnalyticsDashboard() {
           <TabsList>
             <TabsTrigger value="business">Business Intelligence</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="engagement">User Engagement</TabsTrigger>
           </TabsList>
 
           <TabsContent
@@ -236,6 +274,20 @@ export function RagAnalyticsDashboard() {
               />
               <ProcessingStepTimingCard
                 stepTiming={performanceData?.stepTiming}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent
+            value="engagement"
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 gap-4">
+              <SuggestedQuestionsCard
+                totalClicks={suggestedQuestionsData?.totalClicks}
+                topQuestions={suggestedQuestionsData?.topQuestions}
+                contextBreakdown={suggestedQuestionsData?.contextBreakdown}
+                timeRange={timeRange}
               />
             </div>
           </TabsContent>

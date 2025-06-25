@@ -6,7 +6,7 @@
       "created": "2024-01-20T00:00:00.000Z",
       "lastModified": "2024-01-20T00:00:00.000Z",
       "totalTasks": 15,
-      "completedTasks": 0,
+      "completedTasks": 3,
       "tags": {
         "master": {
           "name": "master",
@@ -25,7 +25,7 @@
       "id": "1",
       "title": "Build Axiom Performance Dashboards",
       "description": "Create comprehensive dashboards to monitor RAG middleware performance, user behavior, and system health",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "tags": [
         "analytics",
@@ -41,7 +41,7 @@
       "id": "2",
       "title": "Implement Hybrid Search (Semantic + Keyword)",
       "description": "Combine dense semantic search with sparse keyword/BM25 search for better retrieval accuracy",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "tags": [
         "retrieval",
@@ -75,7 +75,7 @@
       "id": "4",
       "title": "Implement Reranking Models",
       "description": "Add reranking models to improve chunk ordering after initial retrieval",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "tags": [
         "retrieval",

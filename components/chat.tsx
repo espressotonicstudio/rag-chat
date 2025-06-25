@@ -15,6 +15,7 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ArrowUpIcon } from "lucide-react";
 import { useRef } from "react";
+import { useSuggestedQuestionTracking } from "@/lib/axiom/tracking";
 
 export function Chat({
   id,
@@ -51,6 +52,8 @@ export function Chat({
 
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const { trackSuggestedQuestionClick } = useSuggestedQuestionTracking();
 
   return (
     <div className="bg-muted flex flex-row justify-center h-full px-4 py-6">
@@ -99,6 +102,13 @@ export function Chat({
                       variant="outline"
                       className="w-full justify-start"
                       onClick={async () => {
+                        // Track the click before using the question
+                        trackSuggestedQuestionClick(
+                          suggestedQuestion.id,
+                          suggestedQuestion.question,
+                          "chat_interface"
+                        );
+
                         append({
                           role: "user",
                           content: suggestedQuestion.question,

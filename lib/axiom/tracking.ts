@@ -10,6 +10,7 @@ export const TRACKING_EVENTS = {
   FORM_SUBMIT: "form_submit",
   FORM_ABANDON: "form_abandon",
   FORM_START: "form_start",
+  SUGGESTED_QUESTION_CLICK: "suggested_question_click",
 } as const;
 
 // Export types for better type safety
@@ -174,6 +175,27 @@ export function useFormTracking() {
     trackFormAbandon,
     setupAbandonmentTracking,
   };
+}
+
+// Custom hook for tracking suggested question clicks
+export function useSuggestedQuestionTracking() {
+  const logger = useLogger();
+
+  const trackSuggestedQuestionClick = useCallback(
+    (questionId: string, questionText: string, context: string = "unknown") => {
+      logger.info(TRACKING_EVENTS.SUGGESTED_QUESTION_CLICK, {
+        question_id: questionId,
+        question_text: questionText,
+        context: context,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        user_agent: navigator.userAgent,
+      });
+    },
+    [logger]
+  );
+
+  return { trackSuggestedQuestionClick };
 }
 
 // Utility function to track custom events
