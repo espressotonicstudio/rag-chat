@@ -24,6 +24,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "./ui/button";
 import { FilePreviewDialog } from "./file-preview-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { GlobeIcon, MoreVerticalIcon, PlusIcon } from "lucide-react";
+import { AddWebsiteDialog } from "./add-website-dialog";
 
 export const FilesList = ({
   session,
@@ -41,6 +49,7 @@ export const FilesList = ({
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [deleteQueue, setDeleteQueue] = useState<Array<string>>([]);
+  const [isAddWebsiteDialogOpen, setIsAddWebsiteDialogOpen] = useState(false);
   const {
     data: files,
     mutate,
@@ -51,7 +60,7 @@ export const FilesList = ({
       url?: string;
       downloadUrl?: string;
     }>
-  >("/frame/api/files/list", fetcher, {
+  >("/knowledge-base/api/files/list", fetcher, {
     fallbackData: [],
   });
 
@@ -77,10 +86,13 @@ export const FilesList = ({
                     ...currentQueue,
                     file.name,
                   ]);
-                  fetch(`/frame/api/files/upload?filename=${file.name}`, {
-                    method: "POST",
-                    body: file,
-                  });
+                  fetch(
+                    `/knowledge-base/api/files/upload?filename=${file.name}`,
+                    {
+                      method: "POST",
+                      body: file,
+                    }
+                  );
                   setUploadQueue((currentQueue) =>
                     currentQueue.filter((filename) => filename !== file.name)
                   );
@@ -89,14 +101,33 @@ export const FilesList = ({
               }
             }}
           />
-          <Button
-            onClick={() => {
-              inputFileRef.current?.click();
+
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <PlusIcon size={16} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => {
+                  inputFileRef.current?.click();
+                }}
+              >
+                <UploadIcon size={16} />
+                <div>Upload documents</div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsAddWebsiteDialogOpen(true)}>
+                <GlobeIcon size={16} />
+                <div>Add website</div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <AddWebsiteDialog
+            open={isAddWebsiteDialogOpen}
+            setOpen={setIsAddWebsiteDialogOpen}
+            onUpload={(url) => {
+              setUploadQueue((currentQueue) => [...currentQueue, url]);
             }}
-          >
-            <UploadIcon />
-            <div>Upload documents</div>
-          </Button>
+          />
         </div>
 
         {isLoading ? (
@@ -141,7 +172,7 @@ export const FilesList = ({
                       );
 
                       if (allSelected) {
-                        fetch(`/frame/api/files/update`, {
+                        fetch(`/knowledge-base/api/files/update`, {
                           method: "PATCH",
                           body: JSON.stringify({
                             operation: "remove",
@@ -161,7 +192,7 @@ export const FilesList = ({
                         files?.map((file) => file.pathname) || []
                       );
 
-                      fetch(`/frame/api/files/update`, {
+                      fetch(`/knowledge-base/api/files/update`, {
                         method: "PATCH",
                         body: JSON.stringify({
                           operation: "add",
@@ -216,7 +247,7 @@ export const FilesList = ({
 
                         setSelectedFilePathnames(currentSelections);
 
-                        fetch(`/frame/api/files/update`, {
+                        fetch(`/knowledge-base/api/files/update`, {
                           method: "PATCH",
                           body: JSON.stringify({
                             operation,
@@ -226,7 +257,7 @@ export const FilesList = ({
                       }}
                     >
                       {deleteQueue.includes(file.pathname) ? (
-                        <div className="animate-spin">
+                        <div className="animate-spin size-fit">
                           <LoaderIcon />
                         </div>
                       ) : selectedFilePathnames.includes(file.pathname) ? (
@@ -260,7 +291,7 @@ export const FilesList = ({
                           file.pathname,
                         ]);
                         await fetch(
-                          `/frame/api/files/delete?fileurl=${file.url}`,
+                          `/knowledge-base/api/files/delete?fileurl=${file.url}`,
                           {
                             method: "DELETE",
                           }
@@ -288,7 +319,7 @@ export const FilesList = ({
               {uploadQueue.map((fileName) => (
                 <TableRow key={fileName}>
                   <TableCell>
-                    <div className="animate-spin">
+                    <div className="size-fit animate-spin">
                       <LoaderIcon />
                     </div>
                   </TableCell>

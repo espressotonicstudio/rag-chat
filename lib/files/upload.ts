@@ -6,11 +6,20 @@ import { google } from "@ai-sdk/google";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { put } from "@vercel/blob";
 import { embedMany } from "ai";
+import { Readable } from "node:stream";
 
-export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const filename = searchParams.get("filename");
-
+export async function uploadFile(
+  apiKey: string,
+  filename: string,
+  contents:
+    | string
+    | Readable
+    | Buffer
+    | Blob
+    | ArrayBuffer
+    | ReadableStream
+    | File
+) {
   let session = await auth();
 
   if (!session) {
@@ -23,17 +32,13 @@ export async function POST(request: Request) {
     return Response.redirect("/login");
   }
 
-  if (request.body === null) {
+  if (contents === null) {
     return new Response("Request body is empty", { status: 400 });
   }
 
-  const { downloadUrl } = await put(
-    `${user.apiKey}/${filename}`,
-    request.body,
-    {
-      access: "public",
-    }
-  );
+  const { downloadUrl } = await put(`${apiKey}/${filename}`, contents, {
+    access: "public",
+  });
 
   let content = "";
 
@@ -57,12 +62,14 @@ export async function POST(request: Request) {
 
   await insertChunks({
     chunks: chunkedContent.map((chunk, i) => ({
-      id: `${user.apiKey}/${filename}/${i}`,
-      filePath: `${user.apiKey}/${filename}`,
+      id: `${apiKey}/${filename}/${i}`,
+      filePath: `${apiKey}/${filename}`,
       content: chunk.pageContent,
       embedding: embeddings[i],
     })),
   });
 
-  return Response.json({});
+  return {
+    success: true,
+  };
 }

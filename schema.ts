@@ -51,6 +51,15 @@ export const suggestedQuestions = pgTable("SuggestedQuestions", {
     .references(() => user.apiKey),
 });
 
+export const crawls = pgTable("Crawls", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: text("jobId"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  apiKey: uuid("apiKey")
+    .notNull()
+    .references(() => user.apiKey),
+});
+
 export type Chat = Omit<InferSelectModel<typeof chat>, "messages"> & {
   messages: Array<Message>;
 };

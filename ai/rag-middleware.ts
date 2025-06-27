@@ -169,7 +169,7 @@ export const ragMiddleware: LanguageModelV1Middleware = {
 
     const { text: hypotheticalAnswer } = await generateText({
       // fast model for generating hypothetical answer:
-      model: google("gemini-2.5-flash"),
+      model: google("gemini-2.5-flash-lite-preview-06-17"),
       system: "Answer the users question:",
       prompt: lastUserMessageContent,
     });

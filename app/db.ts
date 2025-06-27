@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { desc, eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { chat, chunk, user, suggestedQuestions } from "@/schema";
+import { chat, chunk, user, suggestedQuestions, crawls } from "@/schema";
 import { cache } from "react";
 
 // Optionally, if not using email/pass login, you can
@@ -168,4 +168,37 @@ export async function deleteSuggestedQuestion({ id }: { id: string }) {
   return await db
     .delete(suggestedQuestions)
     .where(eq(suggestedQuestions.id, id));
+}
+
+// Crawls functions
+export async function createCrawl({
+  jobId,
+  apiKey,
+}: {
+  jobId: string;
+  apiKey: string;
+}) {
+  return await db.insert(crawls).values({ jobId, apiKey });
+}
+
+export async function getCrawls({ apiKey }: { apiKey: string }) {
+  return await db.select().from(crawls).where(eq(crawls.apiKey, apiKey));
+}
+
+export async function getCrawlById({ id }: { id: string }) {
+  return await db.select().from(crawls).where(eq(crawls.id, id));
+}
+
+export async function updateCrawl({
+  id,
+  jobId,
+}: {
+  id: string;
+  jobId: string;
+}) {
+  return await db.update(crawls).set({ jobId }).where(eq(crawls.id, id));
+}
+
+export async function deleteCrawl({ id }: { id: string }) {
+  return await db.delete(crawls).where(eq(crawls.id, id));
 }

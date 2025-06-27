@@ -43,7 +43,9 @@ export const FilePreviewDialog = ({
 
     try {
       const response = await fetch(
-        `/frame/api/files/preview?url=${encodeURIComponent(downloadUrl)}`
+        `/knowledge-base/api/files/preview?url=${encodeURIComponent(
+          downloadUrl
+        )}`
       );
 
       if (!response.ok) {
@@ -110,7 +112,7 @@ export const FilePreviewDialog = ({
           </p>
           <Button asChild>
             <a
-              href={`/frame/api/files/preview?url=${encodeURIComponent(
+              href={`/knowledge-base/api/files/preview?url=${encodeURIComponent(
                 downloadUrl
               )}`}
               target="_blank"

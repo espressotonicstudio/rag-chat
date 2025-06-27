@@ -1,0 +1,1 @@
+ALTER TABLE "Crawls" DROP COLUMN IF EXISTS "url";
