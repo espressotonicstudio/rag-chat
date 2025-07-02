@@ -6,7 +6,6 @@ import useSWR from "swr";
 import cx from "classnames";
 import { usePathname } from "next/navigation";
 import { Chat } from "@/schema";
-import { fetcher } from "@/utils/functions";
 import {
   Table,
   TableBody,
@@ -19,6 +18,9 @@ import {
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import InquiryChat from "./inquiry-chat";
+import { ChartNetwork, EyeIcon } from "lucide-react";
+import { Button } from "./ui/button";
+import { InquiryAnalysis, InquiryAnalysisCheck } from "./inquiry-analysis";
 
 export const Inquiries = ({
   apiKey,
@@ -27,13 +29,14 @@ export const Inquiries = ({
 }) => {
   const pathname = usePathname();
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [view, setView] = useState<"history" | "analysis">("history");
 
   const {
     data: history,
     error,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(`/frame/api/history?apiKey=${apiKey}`, fetcher, {
+  } = useSWR<Array<Chat>>(`/frame/api/history?apiKey=${apiKey}`, {
     fallbackData: [],
   });
 
@@ -81,22 +84,31 @@ export const Inquiries = ({
         {history && history.length > 0 && (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="text-center">Date</TableHead>
+              <TableRow className="border-none">
+                <TableHead className="text-center rounded-l-lg">Date</TableHead>
                 <TableHead>Inquiry</TableHead>
                 <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-center rounded-r-lg">
+                  Analysis
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {history.map((chat) => (
                 <TableRow
                   key={chat.id}
-                  className={cx("cursor-pointer group hover:bg-muted", {
-                    "bg-muted": selectedChatId === chat.id,
-                  })}
-                  onClick={() => setSelectedChatId(chat.id)}
+                  className={cx(
+                    "cursor-pointer group hover:bg-muted border-none",
+                    {
+                      "bg-accent": selectedChatId === chat.id,
+                    }
+                  )}
+                  onClick={() => {
+                    setSelectedChatId(chat.id);
+                    setView("history");
+                  }}
                 >
-                  <TableCell className="text-center">
+                  <TableCell className="text-center rounded-l-lg">
                     {new Date(chat.createdAt).toLocaleString()}
                   </TableCell>
                   <TableCell>
@@ -113,10 +125,23 @@ export const Inquiries = ({
                           ? "secondary"
                           : "destructive"
                       }
-                      className="text-xs"
+                      className="text-xs first-letter:capitalize inline-block"
                     >
                       {chat.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-center rounded-r-lg">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedChatId(chat.id);
+                        setView("analysis");
+                      }}
+                    >
+                      <InquiryAnalysisCheck id={chat.id} />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -125,7 +150,13 @@ export const Inquiries = ({
         )}
       </div>
 
-      {selectedChatId && <InquiryChat id={selectedChatId} />}
+      {selectedChatId && view === "history" && (
+        <InquiryChat id={selectedChatId} />
+      )}
+
+      {selectedChatId && view === "analysis" && (
+        <InquiryAnalysis id={selectedChatId} />
+      )}
     </div>
   );
 };

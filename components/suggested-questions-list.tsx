@@ -10,7 +10,6 @@ import {
   PlusIcon,
 } from "./icons";
 import { useState } from "react";
-import { fetcher } from "@/utils/functions";
 import cx from "classnames";
 import { Session } from "next-auth";
 import {
@@ -42,13 +41,9 @@ export const SuggestedQuestionsList = ({
     data: questions,
     mutate,
     isLoading,
-  } = useSWR<SuggestedQuestion[]>(
-    "/knowledge-base/api/suggested-questions",
-    fetcher,
-    {
-      fallbackData: [],
-    }
-  );
+  } = useSWR<SuggestedQuestion[]>("/knowledge-base/api/suggested-questions", {
+    fallbackData: [],
+  });
 
   const handleAddQuestion = async () => {
     if (!newQuestion.trim()) return;

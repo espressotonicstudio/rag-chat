@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { HelpCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Classification {
   classification_type: string;
@@ -27,17 +28,29 @@ interface QuestionTypesCardProps {
 export function QuestionTypesCard({ classifications }: QuestionTypesCardProps) {
   const getQuestionTypeColor = (type: string) => {
     const colors = {
-      "product-service-inquiry": "bg-blue-100 text-blue-800",
-      "pricing-cost-question": "bg-green-100 text-green-800",
-      "location-hours-contact": "bg-purple-100 text-purple-800",
-      "booking-appointment": "bg-orange-100 text-orange-800",
-      "support-help-question": "bg-red-100 text-red-800",
-      "company-about-info": "bg-indigo-100 text-indigo-800",
-      "general-inquiry": "bg-gray-100 text-gray-800",
-      "casual-statement": "bg-yellow-100 text-yellow-800",
-      other: "bg-slate-100 text-slate-800",
+      "product-service-inquiry":
+        "bg-blue-100 text-blue-800 hover:bg-blue-200 hover:text-blue-900",
+      "pricing-cost-question":
+        "bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900",
+      "location-hours-contact":
+        "bg-purple-100 text-purple-800 hover:bg-purple-200 hover:text-purple-900",
+      "booking-appointment":
+        "bg-orange-100 text-orange-800 hover:bg-orange-200 hover:text-orange-900",
+      "support-help-question":
+        "bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-900",
+      "company-about-info":
+        "bg-indigo-100 text-indigo-800 hover:bg-indigo-200 hover:text-indigo-900",
+      "general-inquiry":
+        "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900",
+      "casual-statement":
+        "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900",
+      other:
+        "bg-slate-100 text-slate-800 hover:bg-slate-200 hover:text-slate-900",
     };
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return (
+      colors[type as keyof typeof colors] ||
+      "bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900"
+    );
   };
 
   const getBusinessValue = (type: string) => {
@@ -85,7 +98,10 @@ export function QuestionTypesCard({ classifications }: QuestionTypesCardProps) {
             >
               <div className="flex items-center gap-2">
                 <Badge
-                  className={getQuestionTypeColor(item.classification_type)}
+                  className={cn(
+                    getQuestionTypeColor(item.classification_type),
+                    "first-letter:capitalize inline-block"
+                  )}
                 >
                   {item.classification_type.replace("-", " ")}
                 </Badge>

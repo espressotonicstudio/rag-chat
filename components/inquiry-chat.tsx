@@ -1,9 +1,7 @@
 "use client";
 
 import { Chat } from "@/components/chat";
-import { fetcher } from "@/utils/functions";
 import { Message } from "ai";
-import { Loader2Icon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { Skeleton } from "./ui/skeleton";
@@ -12,8 +10,7 @@ export default function InquiryChat({ id }: { id: string }) {
   const { data: session } = useSession();
 
   const { data: chat, isLoading } = useSWR(
-    `/frame/api/chat-log?apiKey=${session?.user?.apiKey}&id=${id}`,
-    fetcher
+    `/frame/api/chat-log?apiKey=${session?.user?.apiKey}&id=${id}`
   );
 
   if (isLoading) {

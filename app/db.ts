@@ -2,14 +2,23 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { desc, eq, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { chat, chunk, user, suggestedQuestions, crawls } from "@/schema";
+import {
+  chat,
+  chunk,
+  user,
+  suggestedQuestions,
+  crawls,
+  chatAnalysis,
+  ChatAnalysis,
+  ChatAnalysisInsert,
+} from "@/schema";
 import { cache } from "react";
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
 // https://authjs.dev/reference/adapter/drizzle
 let client = postgres(`${process.env.DATABASE_URL!}?sslmode=require`);
-let db = drizzle(client);
+export let db = drizzle(client);
 
 export async function getUser(email: string) {
   return await db.select().from(user).where(eq(user.email, email));
@@ -88,6 +97,16 @@ export async function getChatsByApiKey({ apiKey }: { apiKey: string }) {
 export async function getChatById({ id }: { id: string }) {
   const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
   return selectedChat;
+}
+
+export async function updateChatStatus({
+  id,
+  status,
+}: {
+  id: string;
+  status: "unresolved" | "pending" | "aborted" | "resolved";
+}) {
+  return await db.update(chat).set({ status }).where(eq(chat.id, id));
 }
 
 export async function insertChunks({ chunks }: { chunks: any[] }) {
@@ -201,4 +220,27 @@ export async function updateCrawl({
 
 export async function deleteCrawl({ id }: { id: string }) {
   return await db.delete(crawls).where(eq(crawls.id, id));
+}
+
+// Chat Analysis functions
+export async function createChatAnalysis({
+  analysis,
+}: {
+  analysis: ChatAnalysisInsert;
+}) {
+  return await db.insert(chatAnalysis).values(analysis);
+}
+
+export async function getChatAnalysisByChatId({ chatId }: { chatId: string }) {
+  const [analysis] = await db
+    .select()
+    .from(chatAnalysis)
+    .where(eq(chatAnalysis.chatId, chatId))
+    .limit(1);
+
+  return analysis;
+}
+
+export async function deleteChatAnalysis({ chatId }: { chatId: string }) {
+  return await db.delete(chatAnalysis).where(eq(chatAnalysis.chatId, chatId));
 }

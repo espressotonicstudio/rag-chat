@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AlertCircle } from "lucide-react";
-import { fetcher } from "@/utils/functions";
 import {
   TotalQueriesCard,
   SuccessRateCard,
@@ -103,8 +102,7 @@ export function RagAnalyticsDashboard() {
     isLoading: analyticsLoading,
     mutate: mutateAnalytics,
   } = useSWR<ApiResponse<AnalyticsData>>(
-    `/api/analytics/rag-classification?hours=${timeRange}`,
-    fetcher
+    `/api/analytics/rag-classification?hours=${timeRange}`
   );
 
   const {
@@ -113,8 +111,7 @@ export function RagAnalyticsDashboard() {
     isLoading: performanceLoading,
     mutate: mutatePerformance,
   } = useSWR<ApiResponse<PerformanceData>>(
-    `/api/analytics/rag-performance?hours=${timeRange}`,
-    fetcher
+    `/api/analytics/rag-performance?hours=${timeRange}`
   );
 
   const {
@@ -123,8 +120,7 @@ export function RagAnalyticsDashboard() {
     isLoading: suggestedQuestionsLoading,
     mutate: mutateSuggestedQuestions,
   } = useSWR<ApiResponse<SuggestedQuestionsData>>(
-    `/api/analytics/suggested-questions?hours=${timeRange}`,
-    fetcher
+    `/api/analytics/suggested-questions?hours=${timeRange}`
   );
 
   // Extract data from API responses

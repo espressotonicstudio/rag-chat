@@ -10,7 +10,6 @@ import {
   UploadIcon,
 } from "./icons";
 import { useEffect, useRef, useState } from "react";
-import { fetcher } from "@/utils/functions";
 import cx from "classnames";
 import { Session } from "next-auth";
 import {
@@ -60,7 +59,7 @@ export const FilesList = ({
       url?: string;
       downloadUrl?: string;
     }>
-  >("/knowledge-base/api/files/list", fetcher, {
+  >("/knowledge-base/api/files/list", {
     fallbackData: [],
   });
 

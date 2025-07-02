@@ -9,7 +9,6 @@ import {
 } from "@/components/message";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
 import useSWR from "swr";
-import { fetcher } from "@/utils/functions";
 import { SuggestedQuestion } from "@/schema";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -41,7 +40,6 @@ export function Chat({
 
   const { data: suggestedQuestions } = useSWR<SuggestedQuestion[]>(
     apiKey ? `/knowledge-base/api/suggested-questions` : null,
-    fetcher,
     {
       fallbackData: [],
     }
