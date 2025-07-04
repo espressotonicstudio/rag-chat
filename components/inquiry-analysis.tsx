@@ -27,6 +27,7 @@ import {
   ChartNetworkIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -125,12 +126,14 @@ export const InquiryAnalysisCheck = ({ id }: { id: string }) => {
   }
 
   return (
-    <>
-      <Badge className={getStatusColor(analysis.status)}>
-        {analysis.status.replace("_", " ")}
-      </Badge>
-      <ChartNetworkIcon className="h-4 w-4 text-muted-foreground" />
-    </>
+    <Badge
+      className={cn(
+        getStatusColor(analysis.status),
+        "first-letter:capitalize inline-block"
+      )}
+    >
+      {analysis.status.replace("_", " ")}
+    </Badge>
   );
 };
 

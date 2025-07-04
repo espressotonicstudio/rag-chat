@@ -11,6 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HelpCircle } from "lucide-react";
 
 interface StepTiming {
@@ -54,41 +62,49 @@ export function ProcessingStepTimingCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {stepTiming
-            ?.sort((a, b) => b.avg_duration - a.avg_duration)
-            .map((step) => (
-              <div
-                key={step.step}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className="capitalize"
-                  >
-                    {step.step.replace("_", " ")}
-                  </Badge>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      <p>{getStepTooltip(step.step)}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="text-right">
-                  <div className="font-semibold">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Processing Step</TableHead>
+              <TableHead className="text-right">Avg Duration</TableHead>
+              <TableHead className="text-right">P95 Duration</TableHead>
+              <TableHead className="text-right">Count</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {stepTiming
+              ?.sort((a, b) => b.avg_duration - a.avg_duration)
+              .map((step) => (
+                <TableRow key={step.step}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className="capitalize"
+                      >
+                        {step.step.replace("_", " ")}
+                      </Badge>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          <p>{getStepTooltip(step.step)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">
                     {(step.avg_duration / 1000).toFixed(3)}s
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    P95: {(step.p95_duration / 1000).toFixed(3)}s
-                  </div>
-                </div>
-              </div>
-            ))}
-        </div>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {(step.p95_duration / 1000).toFixed(3)}s
+                  </TableCell>
+                  <TableCell className="text-right">{step.count}</TableCell>
+                </TableRow>
+              ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

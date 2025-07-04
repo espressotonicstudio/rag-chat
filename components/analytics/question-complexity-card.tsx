@@ -11,6 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HelpCircle } from "lucide-react";
 
 interface Complexity {
@@ -49,17 +57,31 @@ export function QuestionComplexityCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-4">
-          {complexityData?.map((item) => (
-            <div
-              key={item.complexity}
-              className="flex-1 flex items-center justify-between gap-4 text-center"
-            >
-              <Badge variant="secondary">{item.complexity} Questions</Badge>
-              <div className="font-bold">{item.count}</div>
-            </div>
-          ))}
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Complexity Level</TableHead>
+              <TableHead className="text-right">Count</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {complexityData?.map((item) => (
+              <TableRow key={item.complexity}>
+                <TableCell>
+                  <Badge
+                    variant="secondary"
+                    className="capitalize"
+                  >
+                    {item.complexity} Questions
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {item.count}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

@@ -11,6 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HelpCircle } from "lucide-react";
 
 interface SkipReason {
@@ -46,21 +54,28 @@ export function RagSkipAnalysisCard({ skipReasons }: RagSkipAnalysisCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {skipReasons?.map((item) => (
-            <div
-              key={item.reason}
-              className="flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {item.reason.replace("_", " ")}
-                </Badge>
-              </div>
-              <div className="font-semibold">{item.count}</div>
-            </div>
-          ))}
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Skip Reason</TableHead>
+              <TableHead className="text-right">Count</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {skipReasons?.map((item) => (
+              <TableRow key={item.reason}>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {item.reason.replace("_", " ")}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {item.count}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

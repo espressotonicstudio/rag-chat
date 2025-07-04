@@ -11,6 +11,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -90,49 +98,60 @@ export function QuestionTypesCard({ classifications }: QuestionTypesCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {classifications?.map((item) => (
-            <div
-              key={item.classification_type}
-              className="flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={cn(
-                    getQuestionTypeColor(item.classification_type),
-                    "first-letter:capitalize inline-block"
-                  )}
-                >
-                  {item.classification_type.replace("-", " ")}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-xs"
-                >
-                  {getBusinessValue(item.classification_type)} Value
-                </Badge>
-              </div>
-              <div className="text-right">
-                <div className="font-semibold">{item.count}</div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {Math.round(item.avg_confidence * 100)}% conf
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-sm">
-                      <p>
-                        Average confidence score for this classification type.
-                        Higher confidence indicates more accurate
-                        categorization.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Question Type</TableHead>
+              <TableHead>Business Value</TableHead>
+              <TableHead className="text-right">Count</TableHead>
+              <TableHead className="text-right">Confidence</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {classifications?.map((item) => (
+              <TableRow key={item.classification_type}>
+                <TableCell>
+                  <Badge
+                    className={cn(
+                      getQuestionTypeColor(item.classification_type),
+                      "first-letter:capitalize inline-block"
+                    )}
+                  >
+                    {item.classification_type.replace("-", " ")}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    {getBusinessValue(item.classification_type)} Value
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-semibold">
+                  {item.count}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
+                    {Math.round(item.avg_confidence * 100)}%
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <p>
+                          Average confidence score for this classification type.
+                          Higher confidence indicates more accurate
+                          categorization.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );
